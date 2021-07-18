@@ -3,45 +3,25 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="BlindsUp.MainPage">
 
-    <StackLayout BackgroundColor="LightSalmon" Padding="0,0,0,0">
-        <Label  Text="-" VerticalOptions="StartAndExpand" HorizontalOptions="StartAndExpand"/>
-        <StackLayout Orientation="Horizontal" HorizontalOptions="Center" >
-                <!--<Button x:Name="BtnDurations" Text="level durations" FontSize="20"  Padding="10,10,10,10" HorizontalOptions="Center" 
-                    Clicked="Durations_Clicked"/>-->
-                <Label x:Name="Time" Text="Clock" FontSize="Header" Padding="0,0,0,0" 
-                   HorizontalOptions="Center" IsVisible="True" FontAttributes="Bold"/>
-            </StackLayout>
-       
 
-            <StackLayout Orientation="Horizontal" HorizontalOptions="Center"
-                     Padding="0,15,0,15">
-                <ImageButton x:Name="IBplay" CornerRadius="23" Source="play.png" HorizontalOptions="Center" IsEnabled="True" 
-                         Clicked="Play_Clicked"  />
-                <ImageButton x:Name="IBpause" CornerRadius="23" Source="pause.png" HorizontalOptions="Center" IsEnabled="True"
-                         IsVisible="False"  Clicked="Pause_Clicked" />
-                <Label x:Name="Level" Text=" " FontSize="30"  HorizontalOptions="CenterAndExpand"
-                       VerticalOptions="CenterAndExpand"/>
-                <!--<Editor x:Name="EditDurations" Text="30, 30, 30, 20, 20, 20" AutoSize="TextChanges" 
-                    HorizontalOptions="FillAndExpand" IsVisible="False"/>
-                <Editor x:Name="EditBlinds" Text="25/50, 50/100, 75/150, 100/200, 150/300, 200/400"
-                    HorizontalOptions="FillAndExpand" IsVisible="False"/>-->
-            </StackLayout>
+    
+     <FlexLayout Direction="Column" AlignItems="Center" JustifyContent="SpaceEvenly" Padding="0,0,0,0" BackgroundColor="LightSalmon">
 
-            <StackLayout Orientation="Horizontal" HorizontalOptions="Center" >
-                <Label x:Name="Blinds" Text="Blinds" FontSize="Header" Padding="0,0,0,0"
-                        FontAttributes="Bold" HorizontalOptions="Center" IsVisible="True" />
-            <!--<Button x:Name="BtnBlinds" Text="blinds" FontSize="20"  Padding="10,10,10,10" HorizontalOptions="Center" 
-                    Clicked="Blinds_Clicked" />
-                <Label x:Name="Blinds" Text="Blinds" FontSize="Header" Padding="0,0,0,0"
-                        FontAttributes="Bold" HorizontalOptions="Center" IsVisible="False" />-->
-            </StackLayout>
-        
-            <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
-        
-            </StackLayout>
-            <Label Text="-" HorizontalOptions="EndAndExpand" VerticalOptions="EndAndExpand" />
-        
-    </StackLayout>
+            <Label x:Name="Time" Text="Clock" FontSize="Header" Padding="0,0,0,0"
+                    IsVisible="True" FontAttributes="Bold" HorizontalOptions="CenterAndExpand"/>
+
+        <StackLayout Orientation="Horizontal" Padding="0,15,0,15" HorizontalOptions="CenterAndExpand">
+            <ImageButton x:Name="IBplay" CornerRadius="23" Source="play.png"  
+                         Clicked="Play_Clicked" HorizontalOptions="Center" />
+            <ImageButton x:Name="IBpause" CornerRadius="23" Source="pause.png"   
+                         IsVisible="False"  Clicked="Pause_Clicked"  />
+            <Label x:Name="Level" Text="Level" FontSize="30"  />
+        </StackLayout>
+
+        <Label x:Name="Blinds" Text="Blinds" FontSize="Header"  FontAttributes="Bold" Padding="0,0,0,0" HorizontalOptions="CenterAndExpand" />
+
+        </FlexLayout>
+  
 
 </ContentPage>
 
