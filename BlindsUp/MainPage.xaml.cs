@@ -31,7 +31,7 @@ namespace BlindsUp
         {
             blindDataSave = blindData;
             InitializeComponent();
-           
+            // new text for github
             shufflePlayer = Plugin.SimpleAudioPlayer.CrossSimpleAudioPlayer.CreateSimpleAudioPlayer();
             shufflePlayer.Load("shuffle6.wav");
             levelPlayer = Plugin.SimpleAudioPlayer.CrossSimpleAudioPlayer.CreateSimpleAudioPlayer();
