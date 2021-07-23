@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xamarin.Forms;
-using Xamarin.Essentials;
 using System.Timers;
+using Xamarin.Essentials;
+using Xamarin.Forms;
 
 
 
@@ -16,22 +11,24 @@ namespace BlindsUp
 {
     public partial class MainPage : ContentPage
     {
-        string blindDataSave = "";
-        List<int[]> blindNumbers;
-        int numBlindLevels = 0;
-        int currentBlindLevel = 0;
-        string title1 = "";
-        string title2 = "";
 
+        // describes the blinds structure: levels, blinds and antes, breaks
+        // initially loaded from blinds.txt via string passed to MainPage
+        List<BLevel> bStructure = new List<BLevel>();
+
+        // loads misc game information
+        // initially loaded from blinds.txt via string passed to MainPage
+        GameInfo gameInfo;
+        System.Timers.Timer aTimer = null;
+       
         Plugin.SimpleAudioPlayer.ISimpleAudioPlayer shufflePlayer;
         Plugin.SimpleAudioPlayer.ISimpleAudioPlayer levelPlayer;
         Plugin.SimpleAudioPlayer.ISimpleAudioPlayer blindsupPlayer;
 
-        public MainPage( string blindData)
+        public MainPage(string settingsData)
         {
-            blindDataSave = blindData;
             InitializeComponent();
-            // new text for github
+
             shufflePlayer = Plugin.SimpleAudioPlayer.CrossSimpleAudioPlayer.CreateSimpleAudioPlayer();
             shufflePlayer.Load("shuffle6.wav");
             levelPlayer = Plugin.SimpleAudioPlayer.CrossSimpleAudioPlayer.CreateSimpleAudioPlayer();
@@ -39,98 +36,287 @@ namespace BlindsUp
             blindsupPlayer = Plugin.SimpleAudioPlayer.CrossSimpleAudioPlayer.CreateSimpleAudioPlayer();
             blindsupPlayer.Load("blindsup5.wav");
 
-            // extract title and blind info (TODO: put in try/catch block)
-            char[] delim = new char[] { ',' };
-            string[] bdLines = blindDataSave.Split(delim,3);
-            title1 = bdLines[0].Trim();
-            title2 = bdLines[1].Trim();
-            string[] blindStrings = bdLines[2].Split(delim);
-            numBlindLevels = blindStrings.Length;
-            blindNumbers = new List<int[]>();
-            foreach(string b in blindStrings)
-            {
-                string bTrimmed = b.Trim();
-                char[] delimSpace = new char[] { ' ' };
-                string[] fields = bTrimmed.Split(delimSpace);
-                int[] fieldNums = new int[fields.Length];
-                for (int i = 0; i < fieldNums.Length; i++)
-                    fieldNums[i] = Convert.ToInt32(fields[i]);
-                blindNumbers.Add(fieldNums);
-            }
-        }
-        private static System.Timers.Timer aTimer;
-        private static bool timerHasStarted = false;
-        private static int totalSecondsLeft = 0;
+            gameInfo = new GameInfo(settingsData);
 
-        public static string SecondsToMinutes(int seconds, int currentBlindLevel)
+            displayMainPanel();
+        }
+   
+  
+
+        void displayMainPanel()
         {
-            var ts = new TimeSpan(0, 0, seconds);
-            if (seconds >= 3600)
+            Console.WriteLine("dispMainPanel");
+            Clock.Text = gameInfo.ClockString();
+            Blinds.Text = gameInfo.BlindString();
+            Level.Text = gameInfo.LevelString();
+            MainPanel.IsVisible = true;
+        }
+
+        void OnTimedEvent(Object source, ElapsedEventArgs e)
+        {
+            if (gameInfo.currentState == GameState.GS_RUNNING)
             {
-                return new DateTime(ts.Ticks).ToString("h:mm:ss");
+                gameInfo.secondsLeftLevel -= 1;
+
+                // play recordings as needed
+                if (gameInfo.secondsLeftLevel == 32)
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        levelPlayer.Play();
+                    });
+                }
+                else if (gameInfo.secondsLeftLevel == 2)
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        blindsupPlayer.Play();
+                    });
+                }
+                else if (gameInfo.secondsLeftLevel == 0)
+                {
+                    gameInfo.LevelExpired();
+                }
             }
-            else if(seconds >= 0)
-                return new DateTime(ts.Ticks).ToString("mm:ss");
-            else 
-                return  " Completed";
+
+            else if(gameInfo.currentState == GameState.GS_BREAK)
+            {
+                gameInfo.secondsLeftBreak -= 1;
+                if(gameInfo.secondsLeftBreak == 2)
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        blindsupPlayer.Play();
+                    });
+                }
+                else if(gameInfo.secondsLeftBreak == 0)
+                {
+                    gameInfo.BreakExpired();
+                }
+            }
+
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                displayMainPanel();
+            } );
+ 
         }
 
         private void Play_Clicked(object sender, EventArgs e)
         {
-            if (!timerHasStarted)
+            BottomIconPanel.IsVisible = false;
+
+            // if unpausing: change state, enable timer, and redisplay
+            if (gameInfo.isPaused)
             {
-
-                //BtnDurations.IsVisible = false;
-                //EditDurations.IsVisible = false;
-                //BtnBlinds.IsVisible = false;
-                //EditBlinds.IsVisible = false;
-
-                shufflePlayer.Play();
-
-                // 3+ tokens: pretourney label1, pretourney label2, blind1, blind2...
-                currentBlindLevel = 1;
-                int[] bnums = blindNumbers[currentBlindLevel - 1];
-                string currentBlinds = "" + bnums[1] + " - " + bnums[2];
-                if (bnums[3] > 0) currentBlinds += "  +" + bnums[3];
-                totalSecondsLeft = 60 * bnums[0];
-
-                Time.Text =  SecondsToMinutes(totalSecondsLeft, currentBlindLevel);
-                Time.IsVisible = true;
-                Blinds.Text = currentBlinds;
-                Blinds.IsVisible = true;
-                Level.Text = "Level " + currentBlindLevel;
-                Level.IsVisible = true;
-                
-
-                aTimer = new System.Timers.Timer(1000);
-                // Hook up the Elapsed event for the timer.
-                aTimer.Elapsed += OnTimedEvent;
-                aTimer.AutoReset = true;
+                gameInfo.isPaused = false;
+                Console.WriteLine("paused");
                 aTimer.Enabled = true;
-                timerHasStarted = true;
-            }
-            else
-            {
-                aTimer.Enabled = true;    
-                Level.Text = "Level " + currentBlindLevel;
             }
 
+            // initial startup logic -- create displayString, timer, etc
+            else if (gameInfo.currentState == GameState.GS_BUYIN)
+            {
+                shufflePlayer.Play();
+                gameInfo.StartPlay();
+            }
+
+            if (aTimer == null)
+            {
+                    aTimer = new System.Timers.Timer(1000);
+                    // Hook up the Elapsed event for the timer.
+                    aTimer.Elapsed += OnTimedEvent;
+                    aTimer.AutoReset = true;
+            }
+
+            aTimer.Enabled = true;
             IBplay.IsVisible = false;
             IBpause.IsVisible = true;
+            IBreverse.IsVisible = false;
+            IBforward.IsVisible = false;
 
+            displayMainPanel();
         }
 
-        private void Settings_Clicked(object sender, EventArgs e)
+        private void Pause_Clicked(object sender, EventArgs e)
         {
+            aTimer.Enabled = false;
+            IBpause.IsVisible = false;
+            IBplay.IsVisible = true;
+            IBreverse.IsVisible = true;
+            IBforward.IsVisible = true;
+            gameInfo.isPaused = true;
+            BottomIconPanel.IsVisible = true;
+            displayMainPanel();
         }
-        private void Durations_Clicked(object sender, EventArgs e)
-        {/*
-            if (EditDurations.IsVisible)
-                EditDurations.IsVisible = false;
+        private void Configure_Click(object sender, EventArgs e)
+        {
+            MainPanel.IsVisible = false;
+            ConfigPanel.IsVisible = true;
+            BottomIconPanel.IsVisible = false;
+        }
+        private void Configure_Titles(object sender, EventArgs e)
+        {
+            Title1Entry.Text = gameInfo.title1;
+            Title2Entry.Text = gameInfo.title2;
+            ConfigPanel.IsVisible = false;
+            TitlePanel.IsVisible = true;
+        }
+       
+        private void EB_NewLevel(int newLevel)
+        {
+            int ilevel, mins, sb, bb, ante, breakMins;
+
+            // get data for this level
+            ilevel = mins = sb = bb = ante = breakMins = 0;
+            if (newLevel < gameInfo.bStructure.Count)
+            {
+                ilevel = newLevel;
+                mins = gameInfo.bStructure[ilevel].mins;
+                sb = gameInfo.bStructure[ilevel].sb;
+                bb = gameInfo.bStructure[ilevel].bb;
+                ante = gameInfo.bStructure[ilevel].ante;
+                breakMins = gameInfo.bStructure[ilevel].breakMins;
+                EBLabel.Text = "Level " + (ilevel+1);
+            }
             else
-                EditDurations.IsVisible = true;
-            */
+            {
+                ilevel = gameInfo.bStructure.Count;
+                EBLabel.Text = "NEW Level";
+            }
+
+            EBLevelStepper.Minimum = 0;
+            EBLevelStepper.Maximum = gameInfo.bStructure.Count;  // always 1 extra level
+            EBLevelStepper.Increment = 1;
+            EBLevelStepper.Value = ilevel;
+
+            EBDurationValue.Text = mins + " minutes";
+            EBDurationStepper.Minimum = 0;
+            EBDurationStepper.Maximum = 120;
+            EBDurationStepper.Increment = 5;
+            EBDurationStepper.Value = mins;
+
+            EBBreakValue.Text = breakMins + " minutes";
+            EBBreakStepper.Minimum = 0;
+            EBBreakStepper.Maximum = 120;
+            EBBreakStepper.Increment = 5;
+            EBBreakStepper.Value = breakMins;
+
+            EBAnteValue.Text = "" + ante;
+            EBAnteStepper.Minimum = 0;
+            EBAnteStepper.Maximum = 1000;
+            EBAnteStepper.Increment = 25;
+            EBAnteStepper.Value = ante;
+
+            EBBlindValue.Text = sb + "/" + bb;
+            EBBlindStepper.Minimum = 0;
+            EBBlindStepper.Maximum = 5000;
+            EBBlindStepper.Increment = 25;
+            EBBlindStepper.Value = sb;
+
         }
+        private void Configure_Blinds(object sender, EventArgs e)
+        {
+            EB_NewLevel(0);
+            ConfigPanel.IsVisible = false;
+            EBPanel.IsVisible = true;
+        }
+        private void EB_LevelChanged(object sender, ValueChangedEventArgs e)
+        {
+            int newLevel = Convert.ToInt32(e.NewValue);
+            EB_NewLevel(newLevel);
+        }
+        private void EB_BlindsChanged(object sender, ValueChangedEventArgs e)
+        {
+            int newSB = Convert.ToInt32(e.NewValue);
+            EBBlindValue.Text = newSB + "/" + (2* newSB);
+        }
+        private void EB_DurationChanged(object sender, ValueChangedEventArgs e)
+        {
+            int newDuration = Convert.ToInt32(e.NewValue);
+            EBDurationValue.Text = newDuration + " minutes";
+        }
+        private void EB_AnteChanged(object sender, ValueChangedEventArgs e)
+        {
+            int newAnte = Convert.ToInt32(e.NewValue);
+            EBAnteValue.Text = "" + newAnte;
+        }
+        private void EB_BreakChanged(object sender, ValueChangedEventArgs e)
+        {
+            int newBreak = Convert.ToInt32(e.NewValue);
+            EBBreakValue.Text = "" + newBreak + " minutes";
+        }
+
+        private void Configure_Exit(object sender, EventArgs e)
+        {
+            ConfigPanel.IsVisible = false;
+            displayMainPanel();
+            BottomIconPanel.IsVisible = true;
+           
+        }
+        private void Save_Titles(object sender, EventArgs e)
+        {
+            ConfigPanel.IsVisible = true;
+            TitlePanel.IsVisible = false;
+            gameInfo.title1 = Title1Entry.Text;
+            gameInfo.title2 = Title2Entry.Text;
+        }
+        private void Quit_Titles(object sender, EventArgs e)
+        {
+            ConfigPanel.IsVisible = true;
+            TitlePanel.IsVisible = false;
+            Title1Entry.Text = gameInfo.title1;
+            Title2Entry.Text = gameInfo.title2;
+        }
+        private void EB_Save(object sender, EventArgs e)
+        {
+            int ilevel = Convert.ToInt32(EBLevelStepper.Value);
+            int mins = Convert.ToInt32(EBDurationStepper.Value);
+            int sb = Convert.ToInt32(EBBlindStepper.Value);
+            int bb = 2 * sb;
+            int breakMins = Convert.ToInt32(EBBreakStepper.Value);
+            int ante = Convert.ToInt32(EBAnteStepper.Value);
+
+            if(ilevel < gameInfo.bStructure.Count)
+            {
+                gameInfo.bStructure[ilevel].ante = ante;
+                gameInfo.bStructure[ilevel].sb = sb;
+                gameInfo.bStructure[ilevel].bb = bb;
+                gameInfo.bStructure[ilevel].breakMins = breakMins; 
+                gameInfo.bStructure[ilevel].mins = mins;
+            }
+            else
+            {
+                gameInfo.bStructure.Add(new BLevel(mins, sb, bb, ante, breakMins));
+            }
+
+            EB_NewLevel(ilevel);
+  
+        }
+        private void EB_Quit(object sender, EventArgs e)
+        {
+            ConfigPanel.IsVisible = true;
+            EBPanel.IsVisible = false;
+        }
+       
+
+
+       
+
+        private void Forward_Clicked(object sender, EventArgs e)
+        {
+            gameInfo.LevelChange(1);
+            displayMainPanel();
+ 
+        }
+
+        private void Reverse_Clicked(object sender, EventArgs e)
+        {
+            gameInfo.LevelChange(-1);
+            displayMainPanel();
+        }
+
         private void Blinds_Clicked(object sender, EventArgs e)
         {
             /*
@@ -141,62 +327,7 @@ namespace BlindsUp
             */
         }
 
-        private void OnTimedEvent(Object source, ElapsedEventArgs e)
-        {
-            totalSecondsLeft -= 1;
-
-            if (totalSecondsLeft == 32)
-            {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    levelPlayer.Play();
-                });
-            }
-            else if(totalSecondsLeft == 2)
-            {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    blindsupPlayer.Play();
-                });
-            }
-
-            if ((totalSecondsLeft == 0) && (currentBlindLevel == numBlindLevels))
-            {
-                aTimer.Enabled = false;
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    Level.Text = "Level " + currentBlindLevel + " Completed";
-                    Time.Text = SecondsToMinutes(totalSecondsLeft, currentBlindLevel);
-                    Blinds.Text = blindNumbers[currentBlindLevel - 1][1] + "/" +
-                           blindNumbers[currentBlindLevel - 1][2];
-                });
-            }
-            else
-            {
-                if(totalSecondsLeft == 0)
-                {
-                    currentBlindLevel += 1;
-                    totalSecondsLeft = blindNumbers[currentBlindLevel - 1][0] * 60;
-                }
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    Time.Text = SecondsToMinutes(totalSecondsLeft, currentBlindLevel);
-                    Level.Text = "Level " + currentBlindLevel;
-                    Blinds.Text = blindNumbers[currentBlindLevel - 1][1] + "/" +
-                       blindNumbers[currentBlindLevel - 1][2];
-                });
-            }
-        }
-        private void Pause_Clicked(object sender, EventArgs e)
-        {
-            aTimer.Enabled = false;
-            IBpause.IsVisible = false;
-            IBplay.IsVisible = true;
-
-            Time.Text = SecondsToMinutes(totalSecondsLeft, currentBlindLevel);
-            Level.Text = "Level " + currentBlindLevel + "  [PAUSED]" ;
-            Blinds.Text = blindNumbers[currentBlindLevel - 1][1] + " / " +
-                  blindNumbers[currentBlindLevel - 1][2] ;
-        }
+        
+        
     }
 }

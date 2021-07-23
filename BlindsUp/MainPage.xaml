@@ -3,26 +3,110 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="BlindsUp.MainPage">
 
+    <StackLayout  Orientation="Vertical" Padding="0,0,0,0" Spacing="0">
 
-    
-     <FlexLayout Direction="Column" AlignItems="Center" JustifyContent="SpaceEvenly" Padding="0,0,0,0" BackgroundColor="LightSalmon">
-
-            <Label x:Name="Time" Text="Clock" FontSize="Header" Padding="0,0,0,0"
-                    IsVisible="True" FontAttributes="Bold" HorizontalOptions="CenterAndExpand"/>
-
-        <StackLayout Orientation="Horizontal" Padding="0,15,0,15" HorizontalOptions="CenterAndExpand">
-            <ImageButton x:Name="IBplay" CornerRadius="23" Source="play.png"  
-                         Clicked="Play_Clicked" HorizontalOptions="Center" />
-            <ImageButton x:Name="IBpause" CornerRadius="23" Source="pause.png"   
-                         IsVisible="False"  Clicked="Pause_Clicked"  />
-            <Label x:Name="Level" Text="Level" FontSize="30"  />
+        <StackLayout x:Name="ConfigPanel" Orientation="Horizontal" Padding="0,0,0,0" Spacing="0"
+                     VerticalOptions="StartAndExpand" IsVisible="False">
+            <Button Text="Titles" Clicked="Configure_Titles"></Button>
+            <Button Text="Blinds" Clicked="Configure_Blinds"></Button>
+            <Button Text="Exit" Margin="10" Clicked="Configure_Exit"></Button>
         </StackLayout>
 
-        <Label x:Name="Blinds" Text="Blinds" FontSize="Header"  FontAttributes="Bold" Padding="0,0,0,0" HorizontalOptions="CenterAndExpand" />
+        <!-- panel used to configure misc titles -->
+        <StackLayout x:Name="TitlePanel" Orientation="Vertical" Padding="0,0,0,0" Spacing="0"
+                     VerticalOptions="StartAndExpand" IsVisible="False">
+            <Label Text="Titles"  FontAttributes="Bold" FontSize="17"></Label>
+            <Entry x:Name="Title1Entry" Placeholder="Enter title1"></Entry>
+            <Entry x:Name="Title2Entry" Placeholder="Enter title2"></Entry>
+            <StackLayout x:Name="TitleActionsPanel" Orientation="Horizontal" Padding="0,0,0,0" Spacing="0">
+                <Button Text="Save" Clicked="Save_Titles"></Button>
+                <Button Text="Quit" Clicked="Quit_Titles"></Button>
+            </StackLayout>
+        </StackLayout>
+
+        <!-- panel used to configure blinds -->
+        <StackLayout x:Name="EBPanel" Orientation="Vertical" Spacing="2" Padding="0,10,0,0" IsVisible="False">
+
+            <StackLayout Orientation="Horizontal" Padding="0,5,0,5">
+                <Label x:Name="EBLabel" Text="Level" FontAttributes="Bold" FontSize="Medium" WidthRequest="70" 
+                   HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="EBLevelStepper" ValueChanged="EB_LevelChanged"></Stepper>
+            </StackLayout>
+
+            <StackLayout HeightRequest="2" BackgroundColor="Black" >
+            </StackLayout>
+
+            <StackLayout Orientation="Horizontal" Padding="0,10,0,0">
+                <Label Text="Duration" FontSize="Medium" WidthRequest="70"
+                   HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="EBDurationStepper" ValueChanged="EB_DurationChanged"></Stepper>
+                <Label x:Name="EBDurationValue" Text="30 minutes" FontSize="Medium" VerticalTextAlignment="Center"></Label>
+            </StackLayout>
+            <StackLayout Orientation="Horizontal">
+                <Label Text="Blinds" FontSize="Medium" WidthRequest="70" 
+                   HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="EBBlindStepper" ValueChanged="EB_BlindsChanged"></Stepper>
+                <Label x:Name="EBBlindValue" Text="1000/2000" FontSize="Medium" VerticalTextAlignment="Center"></Label>
+            </StackLayout>
+            <StackLayout Orientation="Horizontal">
+                <Label Text="Ante" FontSize="Medium" WidthRequest="70" 
+                   HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="EBAnteStepper" ValueChanged="EB_AnteChanged"></Stepper>
+                <Label x:Name="EBAnteValue" Text="0" FontSize="Medium" VerticalTextAlignment="Center"></Label>
+            </StackLayout>
+            <StackLayout Orientation="Horizontal" Padding="0,0,0,5">
+                <Label Text="+Break" FontSize="Medium" WidthRequest="70" 
+                   HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="EBBreakStepper" ValueChanged="EB_BreakChanged"></Stepper>
+                <Label x:Name="EBBreakValue" Text="0 minutes" FontSize="Medium" VerticalTextAlignment="Center"></Label>
+            </StackLayout>
+
+            <StackLayout HeightRequest="1" BackgroundColor="Gray" >
+            </StackLayout>
+            <StackLayout Orientation="Horizontal" Padding="20,5,0,0" Spacing="0">
+                <Button x:Name="EBSaveButton" Text="Save" Clicked="EB_Save"></Button>
+                <Button x:Name="EBQuitButton" Text="Quit" Clicked="EB_Quit"></Button>
+            </StackLayout>
+        </StackLayout>
+
+        <FlexLayout x:Name="MainPanel" Direction="Column"  AlignItems="Center" JustifyContent="SpaceEvenly" 
+                VerticalOptions="FillAndExpand" Padding="0,0,0,0" BackgroundColor="LightSalmon">
+
+            <Label x:Name="Clock" Text="Clock" FontSize="Header" Padding="0,0,0,0" 
+                    IsVisible="True" FontAttributes="Bold" HorizontalOptions="CenterAndExpand"/>
+
+            <StackLayout Orientation="Horizontal" Padding="0,0,0,0" HorizontalOptions="CenterAndExpand">
+                <ImageButton x:Name="IBplay" CornerRadius="25" Source="playtest.png"  
+                         Clicked="Play_Clicked" HorizontalOptions="Center" />
+                <ImageButton x:Name="IBpause" CornerRadius="23" Source="pausetest.png"   
+                         IsVisible="False"  Clicked="Pause_Clicked"  />
+
+                <Label x:Name="Level" Text="Level" FontSize="25" Padding="0,0,0,0" 
+                   VerticalOptions="Center"/>
+                <ImageButton x:Name="IBreverse" CornerRadius="25" Source="reverse.png"
+                    HorizontalOptions="Center" Padding="0,0,0,0" IsVisible="True"
+                    Clicked="Reverse_Clicked"/>
+                <ImageButton x:Name="IBforward" CornerRadius="25" Source="forward.png"
+                    HorizontalOptions="Center" Padding="0,0,0,0" IsVisible="True" 
+                    Clicked="Forward_Clicked"/>
+
+            </StackLayout>
+
+            <Label x:Name="Blinds" Text="Blinds" FontSize="Header"  FontAttributes="Bold" 
+               Padding="0,0,0,0" HorizontalOptions="CenterAndExpand" />
 
         </FlexLayout>
-  
 
+        <StackLayout x:Name="BottomIconPanel" Orientation="Horizontal" VerticalOptions="End" BackgroundColor="LightSalmon" Padding="0,0,0,0">
+            <ImageButton x:Name="IBconfigure" CornerRadius="16" Source="configure32.png"
+                    BackgroundColor="LightSalmon" HorizontalOptions="Start" Clicked="Configure_Click"
+                    VerticalOptions="End" Padding="0,0,0,0" />
+            <ImageButton x:Name="IBpeople" CornerRadius="16" Source="person32.png"
+                    BackgroundColor="LightSalmon" HorizontalOptions="Start" 
+                    VerticalOptions="End" Padding="0,0,0,0" />
+     </StackLayout>
+        
+    </StackLayout>
 </ContentPage>
 
     
