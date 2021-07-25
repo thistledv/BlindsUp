@@ -5,7 +5,14 @@ using Xamarin.Essentials;
 using Xamarin.Forms;
 
 
-
+public enum PlActions
+{
+    PL_BUYIN = 0,
+    PL_ASSIGN_POSITIONS = 1,
+    PL_REBUY = 2,
+    PL_KNOCKOUT = 3,
+    PL_ICM_CHOP = 4,
+}
 
 namespace BlindsUp
 {
@@ -19,8 +26,26 @@ namespace BlindsUp
         // loads misc game information
         // initially loaded from blinds.txt via string passed to MainPage
         GameInfo gameInfo;
-        System.Timers.Timer aTimer = null;
+        List<personInfo> peopleInfo;
+
+        // contains index of player seated at the position -1=noone
+        int[] playerAtPosTemp = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+        int playerIndexOfButton = -1;
        
+        List<Label> seatLabels;
+
+        System.Timers.Timer aTimer = null;
+
+        // must match PlActions Enum
+        public static string[] plActionStrings =
+        {
+        "Player Buy-In",
+        "Assign Positions",
+        "Rebuy/Addon",
+        "Record KO",
+        "ICM Chop"
+        };
+
         Plugin.SimpleAudioPlayer.ISimpleAudioPlayer shufflePlayer;
         Plugin.SimpleAudioPlayer.ISimpleAudioPlayer levelPlayer;
         Plugin.SimpleAudioPlayer.ISimpleAudioPlayer blindsupPlayer;
@@ -37,11 +62,20 @@ namespace BlindsUp
             blindsupPlayer.Load("blindsup5.wav");
 
             gameInfo = new GameInfo(settingsData);
-
+            peopleInfo = new List<personInfo>();
             displayMainPanel();
+            seatLabels = new List<Label>();
+            seatLabels.Add(P1);
+            seatLabels.Add(P2);
+            seatLabels.Add(P3);
+            seatLabels.Add(P4);
+            seatLabels.Add(P5);
+            seatLabels.Add(P6);
+            seatLabels.Add(P7);
+            seatLabels.Add(P8);
+            seatLabels.Add(P9);
+            seatLabels.Add(P10);
         }
-   
-  
 
         void displayMainPanel()
         {
@@ -99,6 +133,7 @@ namespace BlindsUp
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 displayMainPanel();
+               
             } );
  
         }
@@ -150,8 +185,371 @@ namespace BlindsUp
             BottomIconPanel.IsVisible = true;
             displayMainPanel();
         }
+
+        private void People_Click(object sender, EventArgs e)
+        {
+            PLPicker.ItemsSource = null;
+            PLPicker.ItemsSource = plActionStrings;
+            MainPanel.IsVisible = false;
+            PeoplePanel.IsVisible = true;
+            BottomIconPanel.IsVisible = false;
+        }
+        private void PL_Quit(object sender, EventArgs e)
+        {
+            PeoplePanel.IsVisible = false;
+            MainPanel.IsVisible = true;
+            BottomIconPanel.IsVisible = true;
+            PlName.Text = "";
+            PlBuyIn.Text = "";
+            PlBuyInPanel.IsVisible = false;
+            PlRebuyPanel.IsVisible = false;
+            PlAssignTablePanel.IsVisible = false;
+        }
+
+        private void updateActiveLabel()
+        {
+            
+            if (getNumSeated() == 0)
+                PLActive.Text = getNumActive() + " Entrants";
+            else
+            {
+                // count the number of players seated
+                PLActive.Text = getNumSeated() + " of " + getNumActive() + " Seated";
+            }
+        }
+        private void PL_Save(object sender, EventArgs e)
+        {
+            // case 1: was a buy-in
+            if (PLPicker.SelectedIndex == (int)PlActions.PL_BUYIN)
+            {
+                // validate buy-in and name
+                string nam = PlName.Text;
+
+                double bi = 0.0;
+                bool isValidNumeric = true;
+                try
+                {
+                    bi = Convert.ToDouble(PlBuyIn.Text);
+                    if (bi < .25)
+                        isValidNumeric = false;
+                }
+                catch (Exception e1)
+                {
+                    e1.ToString();
+                    isValidNumeric = false;
+                }
+                if (!isValidNumeric)
+                {
+                    PLNotification.Text = "Invalid Buy-In Amount";
+                }
+                else if (PlName.Text.Length == 0)
+                {
+                    PLNotification.Text = "Must enter player name";
+                }
+                else
+                {
+                    peopleInfo.Add(new personInfo(PlName.Text, bi));
+                    PLNotification.Text = "Buy-In successful for " + PlName.Text;
+                    updateActiveLabel();
+                    PlName.Text = "";
+                    PlBuyIn.Text = "";
+                }
+            }
+
+            // case 2: assign players
+            if (PLPicker.SelectedIndex == (int)PlActions.PL_ASSIGN_POSITIONS)
+            {
+                PLNotification.Text = "Impossible state"; 
+            }
+
+            // case 3: rebuy/addon
+            if (PLPicker.SelectedIndex == (int)PlActions.PL_REBUY)
+            {
+                // get name of player selected and find his index
+                // add amount of buyin to personInfo, and set isActive=true
+
+                // validate rebuy amount
+                double rebi = 0.0;
+                bool isValidEntry = true;
+                try
+                {
+                    rebi = Convert.ToDouble(PlBuyIn.Text);
+                    if (rebi < .25)
+                        isValidEntry = false;
+                }
+                catch (Exception e1)
+                {
+                    e1.ToString();
+                    isValidEntry = false;
+                }
+                int playerIndex = PLRebuyer.SelectedIndex;
+
+                if (!isValidEntry)
+                {
+                    // get rid of invalid amount
+                    PLNotification.Text = "Invalid Buy-In Amount";
+                }
+                else if(playerIndex < 0)
+                {
+                    PLNotification.Text = "Must select player name";
+                }
+                else
+                {
+                    PlSaveButton.IsVisible = false;
+                    PlAssignButton.IsVisible = false;
+                    peopleInfo[playerIndex].totalFees += rebi;
+                    peopleInfo[playerIndex].chipBuys += 1;
+                    peopleInfo[playerIndex].isActive = true;
+
+                    PLNotification.Text = "Rebuy successful for " + peopleInfo[playerIndex].name;
+
+                    updateActiveLabel();
+
+                    PlRebuyAmount.Text = "";
+                    PLRebuyer.ItemsSource = null;
+                    PLRebuyer.ItemsSource = getPlayerNames();
+                }
+            }
+        }
+
+        private void PL_AssignSeats(object sender, EventArgs e)
+        {
+            Random rgen = new Random();
+
+            // this function stores player indices in playerAtPosTemp and displays
+
+            // no seat assignments saved yet
+            if (getNumSeated() == 0)
+            {
+                for (int i = 0; i < playerAtPosTemp.Length; i++)
+                    playerAtPosTemp[i] = -1;
+
+                for(int i=0;i<peopleInfo.Count;i++)       
+                {
+                    bool foundOpenSeat = false;
+                    while (!foundOpenSeat)
+                    {
+                        int pos = rgen.Next() % playerAtPosTemp.Length;
+                        if (playerAtPosTemp[pos] < 0)
+                        {
+                            playerAtPosTemp[pos] = i;
+                            peopleInfo[i].tablePos = pos;
+                            foundOpenSeat = true;
+                        }
+                    }
+                }
+
+                // generate which playIndex has button
+                Random r2 = new Random();
+                playerIndexOfButton = r2.Next() % peopleInfo.Count;
+            }
+            else
+            {
+                // some seats already assigned, assign the new ones
+                for (int i = 0; i < playerAtPosTemp.Length; i++)
+                    playerAtPosTemp[i] = -1;
+
+                // buttonPos does not change
+
+                for(int i=0;i<peopleInfo.Count;i++)
+                {
+                    if (peopleInfo[i].tablePos >= 0)
+                    {
+                        playerAtPosTemp[peopleInfo[i].tablePos] = i;
+                    }
+                }
+
+                // find temp positions for the unseated players
+                for (int i = 0; i < peopleInfo.Count; i++)
+                {
+                    if (peopleInfo[i].tablePos < 0)
+                    {
+                        {
+                            bool foundOpenSeat = false;
+                            while (!foundOpenSeat)
+                            {
+                                int pos = rgen.Next() % playerAtPosTemp.Length;
+                                if (playerAtPosTemp[pos] < 0)
+                                {
+                                    playerAtPosTemp[pos] = i;
+                                    peopleInfo[i].tablePos = pos;
+                                    foundOpenSeat = true;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            // now walk the seats at the table and fill labels to show seating
+            int numLabelsLoaded = 0;
+            foreach( int playerIndex in playerAtPosTemp)
+            {
+                if(playerIndex >= 0)
+                {
+                    // there is a player in this seat
+                    string s = (1 + numLabelsLoaded) + ". " + peopleInfo[playerIndex].name;
+                    if (playerIndex == playerIndexOfButton)
+                        s += " [BTN]";
+                    seatLabels[numLabelsLoaded].Text = s;
+                    seatLabels[numLabelsLoaded].IsVisible = true;
+                    numLabelsLoaded += 1;
+                }
+            }
+            PL_Heading.Text = "Assigned Positions";
+            PlSaveButton.IsVisible = false;
+            PlAssignButton.IsVisible = false;
+            updateActiveLabel();
+            PLNotification.Text = "Seats assigned successfully";
+        }
+
+        private void PL_ActionChanged(object sender, EventArgs e)
+        {
+            // when action changes, hide every thing before showing what we need
+            PLNotification.Text = ""; 
+            PlName.Text = "";
+            PlBuyIn.Text = "";
+            PlBuyInPanel.IsVisible = false;
+            PlAssignTablePanel.IsVisible = false;
+            PlRebuyPanel.IsVisible = false;
+            PlSaveButton.IsVisible = false;
+            PlAssignButton.IsVisible = false;
+
+            if (PLPicker.SelectedIndex == (int)PlActions.PL_BUYIN)
+            {
+                PlSaveButton.IsVisible = true;
+                PlBuyInPanel.IsVisible = true;
+                
+            }
+            else if(PLPicker.SelectedIndex == (int)PlActions.PL_KNOCKOUT)
+            {
+                
+            }
+            else if (PLPicker.SelectedIndex == (int)PlActions.PL_ICM_CHOP)
+            {
+                
+            }
+            else if (PLPicker.SelectedIndex == (int)PlActions.PL_REBUY)
+            {
+                PlRebuyPanel.IsVisible = true;
+                PLRebuyer.ItemsSource = null;
+                PLRebuyer.ItemsSource = getPlayerNames();
+                PlRebuyAmount.Text = "";
+                PlSaveButton.IsVisible = true;
+            }
+            else if (PLPicker.SelectedIndex == (int)PlActions.PL_ASSIGN_POSITIONS)
+            {
+                PlAssignTablePanel.IsVisible = true;
+
+                // hide player labels
+                foreach (Label w in seatLabels)
+                    w.IsVisible = false;
+               
+                // if nobody has been seated, just show current players
+                if(getNumSeated() == 0)
+                {
+                    PL_Heading.Text = "Current Players";
+                    if (peopleInfo.Count == 0)
+                    {
+                        P1.Text = "None";
+                        P1.IsVisible = true;
+                    }
+                    else
+                    {
+                        for(int i=0;i<peopleInfo.Count;i++) { 
+                            seatLabels[i].Text = peopleInfo[i].name;
+                            seatLabels[i].IsVisible = true;
+                        }
+                        PlAssignButton.IsVisible = true; 
+                    }
+                }
+                else
+                {
+                    // seats have been assigned -- show current assignments
+
+                    // first, load assignments back into "temp" from peopleInfo,
+                    // which has the last "committed" player seat assignments
+                    for (int i = 0; i < playerAtPosTemp.Length; i++)
+                        playerAtPosTemp[i] = -1;
+
+                    for(int i=0;i<peopleInfo.Count;i++)
+                    { 
+                        if(peopleInfo[i].tablePos >= 0)
+                        {
+                            playerAtPosTemp[peopleInfo[i].tablePos] = i;
+                        }
+                    }
+                   
+                    // now write the info assigned seats to the labels
+                    int numLabelsLoaded = 0;
+                    for(int i=0;i<playerAtPosTemp.Length;i++)
+                    {
+                        int playerIndex = playerAtPosTemp[i];
+                        if (playerIndex >= 0)
+                        {
+                            string s = (1 + numLabelsLoaded) + ". " + peopleInfo[playerIndex].name;
+                            if (playerIndex == playerIndexOfButton)
+                                s += " [BTN]";
+                            seatLabels[numLabelsLoaded].Text = s;
+                            seatLabels[numLabelsLoaded].IsVisible = true;
+                            numLabelsLoaded += 1;
+                        }
+                    }
+                    // write the unassigned players
+                    for (int i=0;i<peopleInfo.Count;i++)
+                    {
+                        if(peopleInfo[i].tablePos < 0)
+                        {
+                            string s = peopleInfo[i].name + " [UNSEATED]";
+                            seatLabels[numLabelsLoaded].Text = s;
+                            seatLabels[numLabelsLoaded].IsVisible = true;
+                            numLabelsLoaded += 1;
+                        }
+                    }
+
+                    PL_Heading.Text = "Assigned Seats";
+
+                    // only allow Reassign if new players have come
+                    if(getNumSeated() < getNumActive())
+                    {
+                        PlAssignButton.Text = "Assign+";
+                        PlAssignButton.IsVisible = true;
+                    }  
+                }
+            }
+        }
+        
+        private int getNumSeated()
+        {
+            int n = 0;
+            foreach(personInfo p in peopleInfo)
+            {
+                if (p.tablePos >= 0)
+                    n += 1;
+            }
+            return n;
+        }
+        private int getNumActive()
+        {
+            int n = 0;
+            foreach (personInfo p in peopleInfo)
+            {
+                if (p.isActive)
+                    n += 1;
+            }
+            return n;
+        }
+        private List<string> getPlayerNames()
+        {
+            List<string> allPlayers = new List<string>();
+            foreach (personInfo p in peopleInfo)
+                allPlayers.Add(p.name);
+            return allPlayers;
+        }
         private void Configure_Click(object sender, EventArgs e)
         {
+
             MainPanel.IsVisible = false;
             ConfigPanel.IsVisible = true;
             BottomIconPanel.IsVisible = false;
@@ -300,10 +698,6 @@ namespace BlindsUp
             EBPanel.IsVisible = false;
         }
        
-
-
-       
-
         private void Forward_Clicked(object sender, EventArgs e)
         {
             gameInfo.LevelChange(1);

@@ -12,6 +12,35 @@ namespace BlindsUp
         GS_BREAK,
         GS_DONE
     }
+
+    class personInfo
+    {
+        public string name;
+        public int chipBuys;
+        public int bustOuts;
+        public int knockOuts;
+        public double totalFees;
+        public double koPrize;
+        public double itmPrize;
+        public List<string> koVictims;
+        public bool isActive;
+        public int tablePos;
+
+        public personInfo (string _name, double _buyIn)
+        {
+            name = _name;
+            chipBuys = 1;
+            isActive = true;
+            koVictims = new List<string>();
+            totalFees = _buyIn;
+            koPrize = 0.0;
+            itmPrize = 0.0;
+            bustOuts = 0;
+            knockOuts = 0;
+            tablePos = -1;
+        }
+    }
+    
     class BLevel
     {
         public int mins;  // minutes in this level
@@ -74,6 +103,7 @@ namespace BlindsUp
             }
         }
 
+        
         public string LevelString()
         {
             if (currentState == GameState.GS_BUYIN)
@@ -104,52 +134,6 @@ namespace BlindsUp
                 return currentBlindString;
         }
 
-        public List<string> BlindLevelStrings()
-        {
-            List<string> blindStrings = new List<string>();
-            for (int i = 0; i < bStructure.Count; i++)
-            {
-                string bstring = "L" + (i + 1) + ": " + bStructure[i].mins + "m " +
-                    bStructure[i].sb + "/" + bStructure[i].bb;
-                if (bStructure[i].ante > 0)
-                    bstring = bstring + " +a" + bStructure[i].ante;
-
-                blindStrings.Add(bstring);
-            }
-            return blindStrings;
-        }
-
-        public List<string> AddBlindLevel()
-        {
-            if(bStructure.Count > 0)
-            {
-                // replicate last level
-                BLevel last = bStructure[bStructure.Count - 1];
-                bStructure.Add(last);
-                return BlindLevelStrings();
-            }
-            else
-            {
-                BLevel b1 = new BLevel(30, 25, 50, 0, 0);
-                bStructure.Add(b1);
-                return BlindLevelStrings();
-            }
-        }
-
-        public List<string> RemoveBlindLevel( int which)
-        { 
-            if (bStructure.Count >= which)
-            {
-
-                bStructure.RemoveAt(which - 1);
-                return BlindLevelStrings();
-            }
-            else
-            {
-                // do nothing except return current strings
-                return BlindLevelStrings();
-            }
-        }
         public string ClockString ()
         {
             int seconds = 0;

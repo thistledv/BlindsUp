@@ -24,6 +24,71 @@
             </StackLayout>
         </StackLayout>
 
+        <!-- panel used for "people actions" -->
+        <StackLayout x:Name="PeoplePanel" Orientation="Vertical" Spacing="2" 
+                     Padding="0,10,0,0" IsVisible="False">
+
+            <StackLayout Orientation="Horizontal" HorizontalOptions="StartAndExpand" Padding="20,5,0,5">
+                <Label  Text="Actions" FontAttributes="Bold" FontSize="Medium"
+                   HorizontalOptions="Center" VerticalTextAlignment="Center"></Label>
+                <Picker x:Name="PLPicker" Title="Select Action"  
+                        WidthRequest="200" HorizontalOptions="Center"
+                        SelectedIndexChanged="PL_ActionChanged" HorizontalTextAlignment="Center"></Picker>
+                <Label  x:Name="PLActive" Text="0 Active" FontSize="Micro" 
+                        Padding="10,0,0,0" VerticalTextAlignment="Center"></Label>
+            </StackLayout>
+
+            <!-- panel used for buyins -->
+            <StackLayout x:Name="PlBuyInPanel" Orientation="Vertical" Padding="20,5,0,0" 
+                         IsVisible="false" Spacing="0">
+                <StackLayout Orientation="Horizontal">
+                    <Label Text="Player" VerticalTextAlignment="Center" FontSize="Medium"></Label>
+                    <Entry x:Name="PlName" WidthRequest="200" Placeholder="name here" FontSize="Medium"></Entry>
+                </StackLayout>
+                <StackLayout Orientation="Horizontal">
+                    <Label Text="Buy-in" VerticalTextAlignment="Center" FontSize="Medium"></Label>
+                    <Entry x:Name="PlBuyIn" Placeholder="amount here" FontSize="Medium"></Entry>
+                </StackLayout>
+            </StackLayout>
+
+            <!-- panel used for rebuys -->
+            <StackLayout x:Name="PlRebuyPanel" Orientation="Vertical" Padding="20,5,0,0" 
+                         IsVisible="false" Spacing="0">
+                <StackLayout Orientation="Vertical">
+                    <Picker  x:Name="PLRebuyer" Title="Select Player" WidthRequest="200" HorizontalOptions="Start"
+                        VerticalTextAlignment="Center" HorizontalTextAlignment="Center" FontSize="Medium"></Picker>
+                    <StackLayout Orientation="Horizontal">
+                        <Label Text="Rebuy" VerticalTextAlignment="Center" FontSize="Medium"></Label>
+                        <Entry x:Name="PlRebuyAmount" Placeholder="amount here" FontSize="Medium"></Entry>
+                    </StackLayout>
+                </StackLayout>
+            </StackLayout>
+
+            <!-- panel used for tablePos -->
+            <StackLayout x:Name="PlAssignTablePanel" Orientation="Vertical" Padding="20,5,0,0" 
+                         IsVisible="false" Spacing="0">
+                <Label x:Name="PL_Heading" Text="Current Players" FontSize="Medium" FontAttributes="Bold"></Label>
+                <Label x:Name="P1" FontSize="Medium"  Text="Player1"></Label>
+                <Label x:Name="P2" FontSize="Medium" Text="Player2"></Label>
+                <Label x:Name="P3" FontSize="Medium" Text="Player3"></Label>
+                <Label x:Name="P4" FontSize="Medium" Text="Player4"></Label>
+                <Label x:Name="P5" FontSize="Medium" Text="Player5"></Label>
+                <Label x:Name="P6" FontSize="Medium" Text="Player6"></Label>
+                <Label x:Name="P7" FontSize="Medium" Text="Player7"></Label>
+                <Label x:Name="P8" FontSize="Medium" Text="Player8"></Label>
+                <Label x:Name="P9" FontSize="Medium" Text="Player9"></Label>
+                <Label x:Name="P10" FontSize="Medium" Text="Player10"></Label>
+            </StackLayout>
+            <StackLayout Orientation="Horizontal" Padding="20,10,0,0" Spacing="0">
+                <Button x:Name="PlAssignButton" Text="Assign" IsVisible="False"
+                        Clicked="PL_AssignSeats"></Button>
+                <Button x:Name="PlSaveButton" Text="Save" IsVisible="false" Clicked="PL_Save"></Button>
+                <Button x:Name="PlQuitButton" Text="Quit" Clicked="PL_Quit"></Button>
+            </StackLayout>
+            <Label x:Name="PLNotification" FontSize="Small" Text="message here" 
+                       VerticalTextAlignment="Center" Padding="20,10,0,0"></Label>
+        </StackLayout>
+        
         <!-- panel used to configure blinds -->
         <StackLayout x:Name="EBPanel" Orientation="Vertical" Spacing="2" Padding="0,10,0,0" IsVisible="False">
 
@@ -32,7 +97,6 @@
                    HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
                 <Stepper x:Name="EBLevelStepper" ValueChanged="EB_LevelChanged"></Stepper>
             </StackLayout>
-
             <StackLayout HeightRequest="2" BackgroundColor="Black" >
             </StackLayout>
 
@@ -61,12 +125,15 @@
                 <Label x:Name="EBBreakValue" Text="0 minutes" FontSize="Medium" VerticalTextAlignment="Center"></Label>
             </StackLayout>
 
-            <StackLayout HeightRequest="1" BackgroundColor="Gray" >
+            
+            <StackLayout HeightRequest="2" BackgroundColor="Gray" >
             </StackLayout>
             <StackLayout Orientation="Horizontal" Padding="20,5,0,0" Spacing="0">
                 <Button x:Name="EBSaveButton" Text="Save" Clicked="EB_Save"></Button>
                 <Button x:Name="EBQuitButton" Text="Quit" Clicked="EB_Quit"></Button>
+               
             </StackLayout>
+           
         </StackLayout>
 
         <FlexLayout x:Name="MainPanel" Direction="Column"  AlignItems="Center" JustifyContent="SpaceEvenly" 
@@ -102,7 +169,7 @@
                     BackgroundColor="LightSalmon" HorizontalOptions="Start" Clicked="Configure_Click"
                     VerticalOptions="End" Padding="0,0,0,0" />
             <ImageButton x:Name="IBpeople" CornerRadius="16" Source="person32.png"
-                    BackgroundColor="LightSalmon" HorizontalOptions="Start" 
+                    BackgroundColor="LightSalmon" HorizontalOptions="Start" Clicked="People_Click"
                     VerticalOptions="End" Padding="0,0,0,0" />
      </StackLayout>
         
