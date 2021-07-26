@@ -18,11 +18,12 @@ namespace BlindsUp
         public string name;
         public int chipBuys;
         public int bustOuts;
+        public int bustOutOrder; // used to determine finish
         public int knockOuts;
         public double totalFees;
         public double koPrize;
         public double itmPrize;
-        public List<string> koVictims;
+        public List<int>koVictims;
         public bool isActive;
         public int tablePos;
 
@@ -31,13 +32,14 @@ namespace BlindsUp
             name = _name;
             chipBuys = 1;
             isActive = true;
-            koVictims = new List<string>();
+            koVictims = new List<int>();
             totalFees = _buyIn;
             koPrize = 0.0;
             itmPrize = 0.0;
             bustOuts = 0;
             knockOuts = 0;
             tablePos = -1;
+            bustOutOrder = 0;
         }
     }
     
@@ -166,9 +168,10 @@ namespace BlindsUp
                 currentBlindString += " +" + bStructure[currentBlindLevel].ante; 
         }
 
-        public void LevelChange(int i)
+        public void LevelChange(int direction)
         {
-            if(i < 0)
+            
+            if(direction < 0)
             {
                 // try to go back a level
                 if(currentBlindLevel <= 0)
@@ -190,7 +193,7 @@ namespace BlindsUp
                         currentBlindString += " +" + bStructure[currentBlindLevel].ante;
                 }
             }
-            else if(i > 0)
+            else if(direction > 0)
             {
                 // try to advance a level
                 if(currentBlindLevel < 0)

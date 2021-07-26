@@ -203,18 +203,23 @@ namespace BlindsUp
             PlBuyIn.Text = "";
             PlBuyInPanel.IsVisible = false;
             PlRebuyPanel.IsVisible = false;
+            PlKOPanel.IsVisible = false;
             PlAssignTablePanel.IsVisible = false;
+            PLNotification.Text = "";
         }
 
         private void updateActiveLabel()
         {
-            
             if (getNumSeated() == 0)
                 PLActive.Text = getNumActive() + " Entrants";
-            else
+            else if(gameInfo.currentState == GameState.GS_BUYIN)
             {
                 // count the number of players seated
                 PLActive.Text = getNumSeated() + " of " + getNumActive() + " Seated";
+            }
+            else if((gameInfo.currentState == GameState.GS_RUNNING)||(gameInfo.currentState == GameState.GS_BREAK))
+            {
+                PLActive.Text = getNumActive() + " of " + getNumSeated() + " Alive";
             }
         }
         private void PL_Save(object sender, EventArgs e)
@@ -257,13 +262,13 @@ namespace BlindsUp
             }
 
             // case 2: assign players
-            if (PLPicker.SelectedIndex == (int)PlActions.PL_ASSIGN_POSITIONS)
+            else if (PLPicker.SelectedIndex == (int)PlActions.PL_ASSIGN_POSITIONS)
             {
-                PLNotification.Text = "Impossible state"; 
+                PLNotification.Text = "Impossible state";
             }
 
             // case 3: rebuy/addon
-            if (PLPicker.SelectedIndex == (int)PlActions.PL_REBUY)
+            else if (PLPicker.SelectedIndex == (int)PlActions.PL_REBUY)
             {
                 // get name of player selected and find his index
                 // add amount of buyin to personInfo, and set isActive=true
@@ -289,7 +294,7 @@ namespace BlindsUp
                     // get rid of invalid amount
                     PLNotification.Text = "Invalid Buy-In Amount";
                 }
-                else if(playerIndex < 0)
+                else if (playerIndex < 0)
                 {
                     PLNotification.Text = "Must select player name";
                 }
@@ -308,6 +313,40 @@ namespace BlindsUp
                     PlRebuyAmount.Text = "";
                     PLRebuyer.ItemsSource = null;
                     PLRebuyer.ItemsSource = getPlayerNames();
+                }
+            }
+            else if (PLPicker.SelectedIndex == (int)PlActions.PL_KNOCKOUT)
+            {
+                int koVictim = PLKnockee.SelectedIndex;
+                int koPerp = PLKnocker.SelectedIndex;
+                if((koVictim < 0)||(koPerp < 0))
+                {
+                    PLNotification.Text = "Please select BOTH victim and perp";
+                }
+                else if(koVictim == koPerp)
+                {
+                     PLNotification.Text  = "Please select DIFFERENT victim and perp";
+                }
+                else
+                {
+                    peopleInfo[koVictim].isActive = false;
+                    peopleInfo[koVictim].bustOuts += 1;
+                    peopleInfo[koVictim].bustOutOrder = getNumBustOuts();
+
+                    // todo: see if any prizes were won and record them [need prize structure]
+
+                    peopleInfo[koPerp].knockOuts += 1;
+                    peopleInfo[koPerp].koVictims.Add(koVictim);
+
+                    updateActiveLabel();
+                    PLNotification.Text = "Recorded KO of " + peopleInfo[koVictim].name + " by " +
+                        peopleInfo[koPerp].name;
+
+                    // reset pickers
+                    PLKnockee.ItemsSource = null;
+                    PLKnocker.ItemsSource = null;
+                    PLKnockee.ItemsSource = getActiveNames();
+                    PLKnocker.ItemsSource = getActiveNames();
                 }
             }
         }
@@ -412,6 +451,7 @@ namespace BlindsUp
             PlBuyIn.Text = "";
             PlBuyInPanel.IsVisible = false;
             PlAssignTablePanel.IsVisible = false;
+            PlKOPanel.IsVisible = false;
             PlRebuyPanel.IsVisible = false;
             PlSaveButton.IsVisible = false;
             PlAssignButton.IsVisible = false;
@@ -424,7 +464,12 @@ namespace BlindsUp
             }
             else if(PLPicker.SelectedIndex == (int)PlActions.PL_KNOCKOUT)
             {
-                
+                PLKnockee.ItemsSource = null;
+                PLKnocker.ItemsSource = null;
+                PLKnockee.ItemsSource = getActiveNames();
+                PLKnocker.ItemsSource = getActiveNames();
+                PlSaveButton.IsVisible = true;
+                PlKOPanel.IsVisible = true;
             }
             else if (PLPicker.SelectedIndex == (int)PlActions.PL_ICM_CHOP)
             {
@@ -518,6 +563,7 @@ namespace BlindsUp
                     }  
                 }
             }
+            updateActiveLabel();
         }
         
         private int getNumSeated()
@@ -540,11 +586,28 @@ namespace BlindsUp
             }
             return n;
         }
+        private int getNumBustOuts()
+        {
+            int n = 0;
+            foreach (personInfo p in peopleInfo)
+            {
+                n += p.bustOuts;
+            }
+            return n;
+        }
         private List<string> getPlayerNames()
         {
             List<string> allPlayers = new List<string>();
             foreach (personInfo p in peopleInfo)
                 allPlayers.Add(p.name);
+            return allPlayers;
+        }
+        private List<string> getActiveNames()
+        {
+            List<string> allPlayers = new List<string>();
+            foreach (personInfo p in peopleInfo)
+                if(p.isActive)
+                    allPlayers.Add(p.name);
             return allPlayers;
         }
         private void Configure_Click(object sender, EventArgs e)

@@ -64,6 +64,15 @@
                 </StackLayout>
             </StackLayout>
 
+            <!-- panel used for ko -->
+            <StackLayout x:Name="PlKOPanel" Orientation="Vertical" Padding="20,5,0,0" 
+                         IsVisible="false" Spacing="0">
+                <Picker  x:Name="PLKnockee" Title="Select KO Victim" WidthRequest="200" HorizontalOptions="Start"
+                        VerticalTextAlignment="Center" HorizontalTextAlignment="Center" FontSize="Medium"></Picker>
+                <Picker  x:Name="PLKnocker" Title="Select KO Perpetrator" WidthRequest="200" HorizontalOptions="Start"
+                        VerticalTextAlignment="Center" HorizontalTextAlignment="Center" FontSize="Medium"></Picker>
+            </StackLayout>
+
             <!-- panel used for tablePos -->
             <StackLayout x:Name="PlAssignTablePanel" Orientation="Vertical" Padding="20,5,0,0" 
                          IsVisible="false" Spacing="0">
