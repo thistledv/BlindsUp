@@ -9,18 +9,75 @@
                      VerticalOptions="StartAndExpand" IsVisible="False">
             <Button Text="Titles" Clicked="Configure_Titles"></Button>
             <Button Text="Blinds" Clicked="Configure_Blinds"></Button>
+            <Button Text="Prizes" Clicked="Configure_Prizes"></Button>
             <Button Text="Exit" Margin="10" Clicked="Configure_Exit"></Button>
         </StackLayout>
 
         <!-- panel used to configure misc titles -->
         <StackLayout x:Name="TitlePanel" Orientation="Vertical" Padding="0,0,0,0" Spacing="0"
                      VerticalOptions="StartAndExpand" IsVisible="False">
-            <Label Text="Titles"  FontAttributes="Bold" FontSize="17"></Label>
+            <Label Text="Titles"  FontAttributes="Bold" FontSize="17" Padding="15,10,0,0"></Label>
             <Entry x:Name="Title1Entry" Placeholder="Enter title1"></Entry>
             <Entry x:Name="Title2Entry" Placeholder="Enter title2"></Entry>
             <StackLayout x:Name="TitleActionsPanel" Orientation="Horizontal" Padding="0,0,0,0" Spacing="0">
                 <Button Text="Save" Clicked="Save_Titles"></Button>
                 <Button Text="Quit" Clicked="Quit_Titles"></Button>
+            </StackLayout>
+        </StackLayout>
+
+        <StackLayout x:Name="PrizesPanel" Orientation="Vertical" Padding="0,0,0,0" Spacing="0"
+                     VerticalOptions="StartAndExpand" IsVisible="False">
+            <Label Text="Prizes"  FontAttributes="Bold" FontSize="Medium" Padding="5,5,0,5"></Label>
+            <StackLayout HeightRequest="1" BackgroundColor="Black"></StackLayout>
+            <StackLayout Orientation="Horizontal" Padding="10,0,0,0" >
+                <Label x:Name="TopPrizesLabel" Text="Top 3" FontSize="Medium" Padding="0,0,0,0" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="TopPrizesStepper" Value="3" HeightRequest="40" Minimum="1" Maximum="5"
+                         ValueChanged="NumPrizes_Changed"></Stepper>
+                <Label Text="KO Bounties" FontSize="Small" Padding="20,0,0,0" VerticalTextAlignment="Center"></Label>
+                <CheckBox x:Name="KOCheckBox" CheckedChanged="KOCheckBox_Changed"></CheckBox>
+            </StackLayout>
+            
+            <StackLayout x:Name="Layout_p1" Orientation="Horizontal" Padding="10,0,0,0">
+                <Label x:Name="Label_p1" Text="2nd: 30%" FontSize="Medium" 
+                       WidthRequest="80" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="Stepper_p1" ValueChanged="Prize_Changed" Maximum="100" HeightRequest="40" Increment="1" Minimum="0"></Stepper>
+            </StackLayout>
+            <StackLayout x:Name="Layout_p2" Orientation="Horizontal" Padding="10,0,0,0">
+                <Label x:Name="Label_p2" Text="2nd: 30%" FontSize="Medium" 
+                       WidthRequest="80" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="Stepper_p2" Maximum="100" HeightRequest="40" 
+                         ValueChanged="Prize_Changed" Increment="1" Minimum="0"></Stepper>
+            </StackLayout>
+            <StackLayout x:Name="Layout_p3" Orientation="Horizontal" Padding="10,0,0,0">
+                <Label  x:Name="Label_p3" Text="3rd: 30%" FontSize="Medium" 
+                       WidthRequest="80" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="Stepper_p3" Maximum="100" HeightRequest="40" 
+                         ValueChanged="Prize_Changed" Increment="1" Minimum="0"></Stepper>
+            </StackLayout>
+            <StackLayout x:Name="Layout_p4" Orientation="Horizontal" Padding="10,0,0,0">
+                <Label x:Name="Label_p4" Text="4th: 30%" FontSize="Medium" 
+                       WidthRequest="80" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="Stepper_p4" Maximum="100" HeightRequest="40" 
+                         ValueChanged="Prize_Changed" Increment="1" Minimum="0"></Stepper>
+            </StackLayout>
+            <StackLayout x:Name="Layout_p5" Orientation="Horizontal" Padding="10,0,0,0">
+                <Label x:Name="Label_p5" Text="5th: 30%" FontSize="Medium" 
+                       WidthRequest="80" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="Stepper_p5" Maximum="100" HeightRequest="40" 
+                         ValueChanged="Prize_Changed" Increment="1" Minimum="0"></Stepper>
+            </StackLayout>
+            <StackLayout x:Name="KOPoolLayout" Orientation="Horizontal" Padding="10,0,0,0">
+                <Label x:Name="KOPoolLabel" Text="KO Pool: 5%" FontSize="Small" 
+                       WidthRequest="80" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="KOPoolStepper" Maximum="100" HeightRequest="40" 
+                         ValueChanged="Prize_Changed" Increment="1" Minimum="0"></Stepper>
+            </StackLayout>
+            
+            <StackLayout x:Name="PrizesActionsPanel" Orientation="Horizontal" Padding="10,20,0,0" Spacing="0">
+                <Button Text="Save" Clicked="Save_Prizes"></Button>
+                <Button Text="Quit" Clicked="Quit_Prizes"></Button>
+                <Label x:Name="PrizeNotifyLabel" Text="" FontSize="Small"
+                       VerticalTextAlignment="Center" Padding="10,0,0,0"></Label>
             </StackLayout>
         </StackLayout>
 

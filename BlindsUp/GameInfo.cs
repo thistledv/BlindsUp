@@ -67,6 +67,8 @@ namespace BlindsUp
         public GameState currentState;
         public List<BLevel> bStructure;
         public bool isPaused;
+        public List<int> prizePct;
+        public int bountyPoolPct;
 
         public GameInfo( string dataString)
         {
@@ -76,6 +78,10 @@ namespace BlindsUp
             currentState = GameState.GS_BUYIN;
             bStructure = new List<BLevel>();
             isPaused = false;
+            prizePct = new List<int>();
+            prizePct.Add(60);
+            prizePct.Add(40);
+            bountyPoolPct = 0;
 
             string[] lines = dataString.Split(new char[] { ',' });
             for (int i = 0; i < lines.Length; i += 2)

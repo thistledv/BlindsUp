@@ -31,8 +31,11 @@ namespace BlindsUp
         // contains index of player seated at the position -1=noone
         int[] playerAtPosTemp = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
         int playerIndexOfButton = -1;
-       
+
         List<Label> seatLabels;
+        List<Layout> prizeLayouts;
+        List<Label> prizeLabels;
+        List<Stepper> prizeSteppers;
 
         System.Timers.Timer aTimer = null;
 
@@ -45,6 +48,9 @@ namespace BlindsUp
         "Record KO",
         "ICM Chop"
         };
+
+        public static string[] rankStrings =
+            {"1st","2nd","3rd","4th","5th"};
 
         Plugin.SimpleAudioPlayer.ISimpleAudioPlayer shufflePlayer;
         Plugin.SimpleAudioPlayer.ISimpleAudioPlayer levelPlayer;
@@ -64,6 +70,8 @@ namespace BlindsUp
             gameInfo = new GameInfo(settingsData);
             peopleInfo = new List<personInfo>();
             displayMainPanel();
+
+            // store these xaml built controls in Lists so we can manipulate more easily
             seatLabels = new List<Label>();
             seatLabels.Add(P1);
             seatLabels.Add(P2);
@@ -75,6 +83,25 @@ namespace BlindsUp
             seatLabels.Add(P8);
             seatLabels.Add(P9);
             seatLabels.Add(P10);
+
+            prizeLayouts = new List<Layout>();
+            prizeLayouts.Add(Layout_p1);
+            prizeLayouts.Add(Layout_p2);
+            prizeLayouts.Add(Layout_p3);
+            prizeLayouts.Add(Layout_p4);
+            prizeLayouts.Add(Layout_p5);
+            prizeLabels = new List<Label>();
+            prizeLabels.Add(Label_p1);
+            prizeLabels.Add(Label_p2);
+            prizeLabels.Add(Label_p3);
+            prizeLabels.Add(Label_p4);
+            prizeLabels.Add(Label_p5);
+            prizeSteppers = new List<Stepper>();
+            prizeSteppers.Add(Stepper_p1);
+            prizeSteppers.Add(Stepper_p2);
+            prizeSteppers.Add(Stepper_p3);
+            prizeSteppers.Add(Stepper_p4);
+            prizeSteppers.Add(Stepper_p5);
         }
 
         void displayMainPanel()
@@ -113,17 +140,17 @@ namespace BlindsUp
                 }
             }
 
-            else if(gameInfo.currentState == GameState.GS_BREAK)
+            else if (gameInfo.currentState == GameState.GS_BREAK)
             {
                 gameInfo.secondsLeftBreak -= 1;
-                if(gameInfo.secondsLeftBreak == 2)
+                if (gameInfo.secondsLeftBreak == 2)
                 {
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
                         blindsupPlayer.Play();
                     });
                 }
-                else if(gameInfo.secondsLeftBreak == 0)
+                else if (gameInfo.secondsLeftBreak == 0)
                 {
                     gameInfo.BreakExpired();
                 }
@@ -133,9 +160,9 @@ namespace BlindsUp
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 displayMainPanel();
-               
-            } );
- 
+
+            });
+
         }
 
         private void Play_Clicked(object sender, EventArgs e)
@@ -159,10 +186,10 @@ namespace BlindsUp
 
             if (aTimer == null)
             {
-                    aTimer = new System.Timers.Timer(1000);
-                    // Hook up the Elapsed event for the timer.
-                    aTimer.Elapsed += OnTimedEvent;
-                    aTimer.AutoReset = true;
+                aTimer = new System.Timers.Timer(1000);
+                // Hook up the Elapsed event for the timer.
+                aTimer.Elapsed += OnTimedEvent;
+                aTimer.AutoReset = true;
             }
 
             aTimer.Enabled = true;
@@ -212,12 +239,12 @@ namespace BlindsUp
         {
             if (getNumSeated() == 0)
                 PLActive.Text = getNumActive() + " Entrants";
-            else if(gameInfo.currentState == GameState.GS_BUYIN)
+            else if (gameInfo.currentState == GameState.GS_BUYIN)
             {
                 // count the number of players seated
                 PLActive.Text = getNumSeated() + " of " + getNumActive() + " Seated";
             }
-            else if((gameInfo.currentState == GameState.GS_RUNNING)||(gameInfo.currentState == GameState.GS_BREAK))
+            else if ((gameInfo.currentState == GameState.GS_RUNNING) || (gameInfo.currentState == GameState.GS_BREAK))
             {
                 PLActive.Text = getNumActive() + " of " + getNumSeated() + " Alive";
             }
@@ -319,13 +346,13 @@ namespace BlindsUp
             {
                 int koVictim = PLKnockee.SelectedIndex;
                 int koPerp = PLKnocker.SelectedIndex;
-                if((koVictim < 0)||(koPerp < 0))
+                if ((koVictim < 0) || (koPerp < 0))
                 {
                     PLNotification.Text = "Please select BOTH victim and perp";
                 }
-                else if(koVictim == koPerp)
+                else if (koVictim == koPerp)
                 {
-                     PLNotification.Text  = "Please select DIFFERENT victim and perp";
+                    PLNotification.Text = "Please select DIFFERENT victim and perp";
                 }
                 else
                 {
@@ -363,7 +390,7 @@ namespace BlindsUp
                 for (int i = 0; i < playerAtPosTemp.Length; i++)
                     playerAtPosTemp[i] = -1;
 
-                for(int i=0;i<peopleInfo.Count;i++)       
+                for (int i = 0; i < peopleInfo.Count; i++)
                 {
                     bool foundOpenSeat = false;
                     while (!foundOpenSeat)
@@ -390,7 +417,7 @@ namespace BlindsUp
 
                 // buttonPos does not change
 
-                for(int i=0;i<peopleInfo.Count;i++)
+                for (int i = 0; i < peopleInfo.Count; i++)
                 {
                     if (peopleInfo[i].tablePos >= 0)
                     {
@@ -423,9 +450,9 @@ namespace BlindsUp
 
             // now walk the seats at the table and fill labels to show seating
             int numLabelsLoaded = 0;
-            foreach( int playerIndex in playerAtPosTemp)
+            foreach (int playerIndex in playerAtPosTemp)
             {
-                if(playerIndex >= 0)
+                if (playerIndex >= 0)
                 {
                     // there is a player in this seat
                     string s = (1 + numLabelsLoaded) + ". " + peopleInfo[playerIndex].name;
@@ -446,7 +473,7 @@ namespace BlindsUp
         private void PL_ActionChanged(object sender, EventArgs e)
         {
             // when action changes, hide every thing before showing what we need
-            PLNotification.Text = ""; 
+            PLNotification.Text = "";
             PlName.Text = "";
             PlBuyIn.Text = "";
             PlBuyInPanel.IsVisible = false;
@@ -460,9 +487,9 @@ namespace BlindsUp
             {
                 PlSaveButton.IsVisible = true;
                 PlBuyInPanel.IsVisible = true;
-                
+
             }
-            else if(PLPicker.SelectedIndex == (int)PlActions.PL_KNOCKOUT)
+            else if (PLPicker.SelectedIndex == (int)PlActions.PL_KNOCKOUT)
             {
                 PLKnockee.ItemsSource = null;
                 PLKnocker.ItemsSource = null;
@@ -473,7 +500,7 @@ namespace BlindsUp
             }
             else if (PLPicker.SelectedIndex == (int)PlActions.PL_ICM_CHOP)
             {
-                
+
             }
             else if (PLPicker.SelectedIndex == (int)PlActions.PL_REBUY)
             {
@@ -490,9 +517,9 @@ namespace BlindsUp
                 // hide player labels
                 foreach (Label w in seatLabels)
                     w.IsVisible = false;
-               
+
                 // if nobody has been seated, just show current players
-                if(getNumSeated() == 0)
+                if (getNumSeated() == 0)
                 {
                     PL_Heading.Text = "Current Players";
                     if (peopleInfo.Count == 0)
@@ -502,11 +529,11 @@ namespace BlindsUp
                     }
                     else
                     {
-                        for(int i=0;i<peopleInfo.Count;i++) { 
+                        for (int i = 0; i < peopleInfo.Count; i++) {
                             seatLabels[i].Text = peopleInfo[i].name;
                             seatLabels[i].IsVisible = true;
                         }
-                        PlAssignButton.IsVisible = true; 
+                        PlAssignButton.IsVisible = true;
                     }
                 }
                 else
@@ -518,17 +545,17 @@ namespace BlindsUp
                     for (int i = 0; i < playerAtPosTemp.Length; i++)
                         playerAtPosTemp[i] = -1;
 
-                    for(int i=0;i<peopleInfo.Count;i++)
-                    { 
-                        if(peopleInfo[i].tablePos >= 0)
+                    for (int i = 0; i < peopleInfo.Count; i++)
+                    {
+                        if (peopleInfo[i].tablePos >= 0)
                         {
                             playerAtPosTemp[peopleInfo[i].tablePos] = i;
                         }
                     }
-                   
+
                     // now write the info assigned seats to the labels
                     int numLabelsLoaded = 0;
-                    for(int i=0;i<playerAtPosTemp.Length;i++)
+                    for (int i = 0; i < playerAtPosTemp.Length; i++)
                     {
                         int playerIndex = playerAtPosTemp[i];
                         if (playerIndex >= 0)
@@ -542,9 +569,9 @@ namespace BlindsUp
                         }
                     }
                     // write the unassigned players
-                    for (int i=0;i<peopleInfo.Count;i++)
+                    for (int i = 0; i < peopleInfo.Count; i++)
                     {
-                        if(peopleInfo[i].tablePos < 0)
+                        if (peopleInfo[i].tablePos < 0)
                         {
                             string s = peopleInfo[i].name + " [UNSEATED]";
                             seatLabels[numLabelsLoaded].Text = s;
@@ -556,20 +583,20 @@ namespace BlindsUp
                     PL_Heading.Text = "Assigned Seats";
 
                     // only allow Reassign if new players have come
-                    if(getNumSeated() < getNumActive())
+                    if (getNumSeated() < getNumActive())
                     {
                         PlAssignButton.Text = "Assign+";
                         PlAssignButton.IsVisible = true;
-                    }  
+                    }
                 }
             }
             updateActiveLabel();
         }
-        
+
         private int getNumSeated()
         {
             int n = 0;
-            foreach(personInfo p in peopleInfo)
+            foreach (personInfo p in peopleInfo)
             {
                 if (p.tablePos >= 0)
                     n += 1;
@@ -602,11 +629,21 @@ namespace BlindsUp
                 allPlayers.Add(p.name);
             return allPlayers;
         }
+
+        private int IndexOfStepper( Stepper stepperObj)
+        {
+            for(int i=0;i<prizeSteppers.Count;i++)
+            {
+                if (prizeSteppers[i] == stepperObj)
+                    return i;
+            }
+            return -1;
+        }
         private List<string> getActiveNames()
         {
             List<string> allPlayers = new List<string>();
             foreach (personInfo p in peopleInfo)
-                if(p.isActive)
+                if (p.isActive)
                     allPlayers.Add(p.name);
             return allPlayers;
         }
@@ -624,7 +661,138 @@ namespace BlindsUp
             ConfigPanel.IsVisible = false;
             TitlePanel.IsVisible = true;
         }
-       
+
+        private void Configure_Prizes(object sender, EventArgs e)
+        {
+            ConfigPanel.IsVisible = false;
+            int numPrizes = gameInfo.prizePct.Count;
+            TopPrizesLabel.Text = "Top " + numPrizes;
+            TopPrizesStepper.Value = numPrizes;
+            for (int i = 0; i < prizeLayouts.Count; i++)
+            {
+                if (i < numPrizes)
+                {
+                    prizeSteppers[i].Value = gameInfo.prizePct[i];
+                    prizeLabels[i].Text = rankStrings[i] + ":" + " " +
+                        gameInfo.prizePct[i] + "%";
+                    prizeLayouts[i].IsVisible = true;
+                }
+                else
+                {
+                    prizeLayouts[i].IsVisible = false;
+                    prizeLabels[i].Text = " ";
+                    prizeSteppers[i].Value = 0;
+                }
+            }
+            if (gameInfo.bountyPoolPct <= 0)
+            {
+                KOCheckBox.IsChecked = false;
+                KOPoolLayout.IsVisible = false;
+                KOPoolLabel.Text = "";
+                KOPoolStepper.Value = 0;
+            }
+            else
+            {
+                KOCheckBox.IsChecked = true;
+                KOPoolLayout.IsVisible = true;
+                KOPoolLabel.Text = "KO Pool: " + gameInfo.bountyPoolPct + "%";
+                KOPoolStepper.Value = gameInfo.bountyPoolPct;
+            }
+            PrizesPanel.IsVisible = true;
+        }
+
+        private void NumPrizes_Changed(object sender, ValueChangedEventArgs e)
+        {
+            int newVal = (int)e.NewValue;
+            int oldVal = (int)e.OldValue;
+            PrizeNotifyLabel.Text = "";
+
+            TopPrizesLabel.Text = "Top" + (int)e.NewValue;
+            
+            for(int i=0;i<prizeLayouts.Count;i++)
+            {
+                if(i < newVal)
+                {
+                    if (!prizeLayouts[i].IsVisible)
+                    {
+                        prizeSteppers[i].Value = 0;
+                        prizeLabels[i].Text = rankStrings[i] + ":" + " " +
+                         prizeSteppers[i].Value + "%";
+
+                        prizeLayouts[i].IsVisible = true;
+                    }
+                }
+                else
+                {
+                    prizeLayouts[i].IsVisible = false;
+                }
+            }
+
+        }
+        private void Save_Prizes(object sender, EventArgs e)
+        {
+            // make sure everything adds up to 100%
+            int pctSum = 0;
+            int numPrizes = (int)TopPrizesStepper.Value;
+            for(int i=0;i<numPrizes;i++)
+            {
+                pctSum += (int)prizeSteppers[i].Value;
+            }
+            if(KOCheckBox.IsChecked)
+            {
+                pctSum += (int)KOPoolStepper.Value;
+            }
+            if(pctSum != 100)
+            {
+                PrizeNotifyLabel.Text = "Prizes must sum to 100%";
+            }
+            else
+            {
+                if(KOCheckBox.IsChecked)
+                {
+                    gameInfo.bountyPoolPct = (int)KOPoolStepper.Value;
+                }
+                gameInfo.prizePct.Clear();
+                for (int i = 0; i < numPrizes; i++)
+                    gameInfo.prizePct.Add((int)prizeSteppers[i].Value);
+                PrizeNotifyLabel.Text = "Prize structure updated";
+            }
+        }
+        private void Quit_Prizes(object sender, EventArgs e)
+        {
+            ConfigPanel.IsVisible = true;
+            PrizesPanel.IsVisible = false;
+        }
+
+        private void Prize_Changed(object sender, ValueChangedEventArgs e)
+        {
+            int sendIndex = IndexOfStepper((Stepper)sender);
+            PrizeNotifyLabel.Text = "";
+            if (sendIndex >= 0)
+            {
+                prizeLabels[sendIndex].Text = rankStrings[sendIndex] + ":" + " " +
+                        (int)e.NewValue + "%";
+            }
+            else if(KOPoolStepper == (Stepper)sender)
+            {
+                KOPoolLabel.Text = "KO Pool: " + (int)e.NewValue + "%";
+            }
+        }
+        private void KOCheckBox_Changed(object sender, EventArgs e)
+        {
+            PrizeNotifyLabel.Text = "";
+
+            if(KOCheckBox.IsChecked) {
+                KOPoolLayout.IsVisible = true;
+                KOPoolLabel.Text = "KO Pool: " + gameInfo.bountyPoolPct + "%";
+                KOPoolStepper.Value = gameInfo.bountyPoolPct;
+            }
+            else {
+                KOPoolLayout.IsVisible = false;
+                KOPoolLabel.Text = "";
+                KOPoolStepper.Value = gameInfo.bountyPoolPct;
+            }
+        }
         private void EB_NewLevel(int newLevel)
         {
             int ilevel, mins, sb, bb, ante, breakMins;
@@ -677,6 +845,8 @@ namespace BlindsUp
             EBBlindStepper.Value = sb;
 
         }
+
+      
         private void Configure_Blinds(object sender, EventArgs e)
         {
             EB_NewLevel(0);
@@ -716,6 +886,7 @@ namespace BlindsUp
             BottomIconPanel.IsVisible = true;
            
         }
+    
         private void Save_Titles(object sender, EventArgs e)
         {
             ConfigPanel.IsVisible = true;
