@@ -68,7 +68,7 @@ namespace BlindsUp
         public List<BLevel> bStructure;
         public bool isPaused;
         public List<int> prizePct;
-        public int bountyPoolPct;
+        public double bounty;
 
         public GameInfo( string dataString)
         {
@@ -81,7 +81,7 @@ namespace BlindsUp
             prizePct = new List<int>();
             prizePct.Add(60);
             prizePct.Add(40);
-            bountyPoolPct = 0;
+            bounty = 0.0;
 
             string[] lines = dataString.Split(new char[] { ',' });
             for (int i = 0; i < lines.Length; i += 2)
@@ -136,18 +136,13 @@ namespace BlindsUp
 
         public string BlindString()
         {
-            if (currentState == GameState.GS_BUYIN)
-                return title2;
-            else
-                return currentBlindString;
+            return currentBlindString;
         }
 
         public string ClockString ()
         {
             int seconds = 0;
-            if (currentState == GameState.GS_BUYIN)
-                return title1;
-            else if (currentState == GameState.GS_RUNNING)
+            if (currentState == GameState.GS_RUNNING)
                 seconds = secondsLeftLevel;
             else if (currentState == GameState.GS_BREAK)
                 seconds = secondsLeftBreak;

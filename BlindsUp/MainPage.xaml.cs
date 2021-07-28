@@ -36,6 +36,7 @@ namespace BlindsUp
         List<Layout> prizeLayouts;
         List<Label> prizeLabels;
         List<Stepper> prizeSteppers;
+        List<ChopEntry> chopEntries;
 
         System.Timers.Timer aTimer = null;
 
@@ -102,11 +103,23 @@ namespace BlindsUp
             prizeSteppers.Add(Stepper_p3);
             prizeSteppers.Add(Stepper_p4);
             prizeSteppers.Add(Stepper_p5);
+
+            chopEntries = new List<ChopEntry>();
         }
 
         void displayMainPanel()
         {
-            Console.WriteLine("dispMainPanel");
+            if (gameInfo.currentState == GameState.GS_BUYIN)
+            {
+                Title1.IsVisible = Title2.IsVisible = true;
+                Clock.IsVisible = Blinds.IsVisible = false;
+            }
+            else
+            {
+                Clock.IsVisible = Blinds.IsVisible = true;
+                Title1.IsVisible = Title2.IsVisible = false;
+            }
+            
             Clock.Text = gameInfo.ClockString();
             Blinds.Text = gameInfo.BlindString();
             Level.Text = gameInfo.LevelString();
@@ -221,6 +234,103 @@ namespace BlindsUp
             PeoplePanel.IsVisible = true;
             BottomIconPanel.IsVisible = false;
         }
+        private void PL_CalculateChop(object sender, EventArgs e)
+        {
+            // validate entries
+            bool isInvalid = false;
+            List<double> stacks = new List<double>();
+
+            foreach(ChopEntry c in chopEntries)
+            {
+                if(peopleInfo[c.playerIndex].isActive)
+                {
+                    try
+                    {
+                        double dval = Convert.ToDouble(c.getStackString());
+                        stacks.Add(dval);
+                    }
+                    catch
+                    {
+                        c.setChopString("invalid stack");
+                        isInvalid = true;
+                    }
+                }
+            }
+
+            if (!isInvalid)
+            {
+                double[] prizePct = new double[gameInfo.prizePct.Count];
+                for (int i = 0; i < prizePct.Length; i++) prizePct[i] =
+                        Convert.ToDouble(gameInfo.prizePct[i]);
+                double[] playerStacks = new double[stacks.Count];
+                for (int i = 0; i < playerStacks.Length; i++) playerStacks[i] =
+                            stacks[i];
+
+                double[] equity = ComputeEquity(playerStacks, prizePct);
+
+                double totalPool = getPrizePool();
+                double adjPool = totalPool;
+                int numBountiesPaid = getTotalBounties();
+                adjPool -= Convert.ToDouble(numBountiesPaid) * gameInfo.bounty;
+
+                // display the equity figure
+                int index = 0;
+                foreach (ChopEntry c in chopEntries)
+                {
+                    if (peopleInfo[c.playerIndex].isActive)
+                    {
+                        double prizeShare = (adjPool * equity[index]) / 100.0;
+                        c.setChopString("$" + prizeShare.ToString("0.##") + "  (" +
+                            equity[index].ToString("0.##") + "%" + ")");
+                        index += 1;
+                    }
+                }
+            }
+        }
+
+        private double[] ComputeEquity( double[] stacks, double[] prizes)
+        {
+            double stackSum = 0.0;
+            double[] playerEquity = new double[stacks.Length];
+            for (int i = 0; i < playerEquity.Length; i++) playerEquity[i] = 0.0;
+
+            foreach (double d in stacks) stackSum += d;
+
+            List<int> a = new List<int>();
+            List<int> b = new List<int>();
+            for (int i = 0; i < stacks.Length; i++)
+                b.Add(i);
+
+            permugen(a, b, prizes.Length, 1.0, 0.0, stackSum, stacks, prizes, playerEquity);
+
+            return playerEquity;
+        }
+       static void permugen(List<int> a, List<int> b, int aMaxSize,
+         double probOfA, double partialStackSum, double stackSum,
+         double[] stacks, double[] prizes, double[] playerEquity)
+        {
+            // create new sets of a by adding each possible element
+            for (int i = 0; i < b.Count; i++)
+            {
+                List<int> newA = new List<int>(a);
+                newA.Add(b[i]);
+                List<int> newB = new List<int>(b);
+                newB.RemoveAt(i);
+
+                // compute probability of newA
+                double probOfNewA = probOfA * (stacks[b[i]] / (stackSum - partialStackSum));
+                double newPartialStackSum = partialStackSum + stacks[b[i]];
+
+                // compute contribution to player equity of newly added player
+                playerEquity[b[i]] += probOfNewA * prizes[newA.Count - 1];
+
+                if (newA.Count < aMaxSize)
+                {
+                    permugen(newA, newB, aMaxSize, probOfNewA, newPartialStackSum,
+                        stackSum, stacks, prizes, playerEquity);
+                }
+            }
+        }
         private void PL_Quit(object sender, EventArgs e)
         {
             PeoplePanel.IsVisible = false;
@@ -233,6 +343,7 @@ namespace BlindsUp
             PlKOPanel.IsVisible = false;
             PlAssignTablePanel.IsVisible = false;
             PLNotification.Text = "";
+            PlChopPanel.IsVisible = false;
         }
 
         private void updateActiveLabel()
@@ -262,8 +373,6 @@ namespace BlindsUp
                 try
                 {
                     bi = Convert.ToDouble(PlBuyIn.Text);
-                    if (bi < .25)
-                        isValidNumeric = false;
                 }
                 catch (Exception e1)
                 {
@@ -283,6 +392,7 @@ namespace BlindsUp
                     peopleInfo.Add(new personInfo(PlName.Text, bi));
                     PLNotification.Text = "Buy-In successful for " + PlName.Text;
                     updateActiveLabel();
+                    updatePrizePool();
                     PlName.Text = "";
                     PlBuyIn.Text = "";
                 }
@@ -305,9 +415,7 @@ namespace BlindsUp
                 bool isValidEntry = true;
                 try
                 {
-                    rebi = Convert.ToDouble(PlBuyIn.Text);
-                    if (rebi < .25)
-                        isValidEntry = false;
+                    rebi = Convert.ToDouble(PlRebuyAmount.Text);
                 }
                 catch (Exception e1)
                 {
@@ -319,7 +427,7 @@ namespace BlindsUp
                 if (!isValidEntry)
                 {
                     // get rid of invalid amount
-                    PLNotification.Text = "Invalid Buy-In Amount";
+                    PLNotification.Text = "Invalid Rebuy Amount";
                 }
                 else if (playerIndex < 0)
                 {
@@ -330,12 +438,15 @@ namespace BlindsUp
                     PlSaveButton.IsVisible = false;
                     PlAssignButton.IsVisible = false;
                     peopleInfo[playerIndex].totalFees += rebi;
-                    peopleInfo[playerIndex].chipBuys += 1;
-                    peopleInfo[playerIndex].isActive = true;
 
-                    PLNotification.Text = "Rebuy successful for " + peopleInfo[playerIndex].name;
-
+                    if (rebi > 0.0)
+                    {
+                        peopleInfo[playerIndex].isActive = true;
+                        peopleInfo[playerIndex].chipBuys += 1;
+                        PLNotification.Text = "Rebuy successful for " + peopleInfo[playerIndex].name;
+                    }
                     updateActiveLabel();
+                    updatePrizePool();
 
                     PlRebuyAmount.Text = "";
                     PLRebuyer.ItemsSource = null;
@@ -481,7 +592,9 @@ namespace BlindsUp
             PlKOPanel.IsVisible = false;
             PlRebuyPanel.IsVisible = false;
             PlSaveButton.IsVisible = false;
+            PlCalculateChopButton.IsVisible = false;
             PlAssignButton.IsVisible = false;
+            PlChopPanel.IsVisible = false;
 
             if (PLPicker.SelectedIndex == (int)PlActions.PL_BUYIN)
             {
@@ -500,7 +613,47 @@ namespace BlindsUp
             }
             else if (PLPicker.SelectedIndex == (int)PlActions.PL_ICM_CHOP)
             {
+                PlCalculateChopButton.IsVisible = true;
 
+                // display available pool
+                double totalPool = getPrizePool();
+                int numBounties = getTotalBounties();
+                double adjPool = totalPool - (Convert.ToDouble(numBounties) * gameInfo.bounty);
+                PLChopNotice.Text = "Available Pool = $" + adjPool.ToString("0.##"); 
+
+                // make sure all actives are loaded
+                for (int playerIndex = 0; playerIndex < peopleInfo.Count; playerIndex++)
+                {
+                    if (peopleInfo[playerIndex].isActive)
+                    {
+                        bool isLoaded = false;
+                        foreach (ChopEntry c in chopEntries)
+                        {
+                            if (c.playerIndex == playerIndex)
+                            {
+                                isLoaded = true;
+                                break;
+                            }
+                        }
+                        if(!isLoaded)
+                        {
+                            ChopEntry c = new ChopEntry(peopleInfo[playerIndex].name, playerIndex);
+                            chopEntries.Add(c);
+                            PlChopPanel.Children.Add(c.container);
+                        }
+                    }
+                }
+
+                // now hide all chopEntries that are not active
+                foreach(ChopEntry c in chopEntries)
+                {
+                    if (peopleInfo[c.playerIndex].isActive)
+                        c.container.IsVisible = true;
+                    else
+                        c.container.IsVisible = false;
+                }
+              
+                PlChopPanel.IsVisible = true;
             }
             else if (PLPicker.SelectedIndex == (int)PlActions.PL_REBUY)
             {
@@ -647,6 +800,28 @@ namespace BlindsUp
                     allPlayers.Add(p.name);
             return allPlayers;
         }
+
+        private double getPrizePool()
+        {
+            double poolSum = 0.0;
+            foreach (personInfo p in peopleInfo)
+                poolSum += p.totalFees;
+            return poolSum;
+        }
+        private int getTotalBounties()
+        {
+            int bsum = 0;
+            foreach (personInfo p in peopleInfo)
+                bsum += p.knockOuts;
+            return bsum;
+        }
+        private void updatePrizePool()
+        {
+            double poolSum = 0.0;
+            foreach (personInfo p in peopleInfo)
+                poolSum += p.totalFees;
+            PrizePool.Text = "Prize Pool: $" + poolSum.ToString("0.##");
+        }
         private void Configure_Click(object sender, EventArgs e)
         {
 
@@ -684,19 +859,19 @@ namespace BlindsUp
                     prizeSteppers[i].Value = 0;
                 }
             }
-            if (gameInfo.bountyPoolPct <= 0)
+            if (gameInfo.bounty <= 0.0)
             {
                 KOCheckBox.IsChecked = false;
-                KOPoolLayout.IsVisible = false;
-                KOPoolLabel.Text = "";
-                KOPoolStepper.Value = 0;
+                KOBLayout.IsVisible = false;
+                KOBLabel.Text = "";
+                KOBStepper.Value = 0;
             }
             else
             {
                 KOCheckBox.IsChecked = true;
-                KOPoolLayout.IsVisible = true;
-                KOPoolLabel.Text = "KO Pool: " + gameInfo.bountyPoolPct + "%";
-                KOPoolStepper.Value = gameInfo.bountyPoolPct;
+                KOBLayout.IsVisible = true;
+                KOBLabel.Text = "KO: " + gameInfo.bounty + "$";
+                KOBStepper.Value = gameInfo.bounty;
             }
             PrizesPanel.IsVisible = true;
         }
@@ -738,10 +913,6 @@ namespace BlindsUp
             {
                 pctSum += (int)prizeSteppers[i].Value;
             }
-            if(KOCheckBox.IsChecked)
-            {
-                pctSum += (int)KOPoolStepper.Value;
-            }
             if(pctSum != 100)
             {
                 PrizeNotifyLabel.Text = "Prizes must sum to 100%";
@@ -750,7 +921,7 @@ namespace BlindsUp
             {
                 if(KOCheckBox.IsChecked)
                 {
-                    gameInfo.bountyPoolPct = (int)KOPoolStepper.Value;
+                    gameInfo.bounty = KOBStepper.Value;
                 }
                 gameInfo.prizePct.Clear();
                 for (int i = 0; i < numPrizes; i++)
@@ -773,9 +944,9 @@ namespace BlindsUp
                 prizeLabels[sendIndex].Text = rankStrings[sendIndex] + ":" + " " +
                         (int)e.NewValue + "%";
             }
-            else if(KOPoolStepper == (Stepper)sender)
+            else if(KOBStepper == (Stepper)sender)
             {
-                KOPoolLabel.Text = "KO Pool: " + (int)e.NewValue + "%";
+                KOBLabel.Text = "KO: " + (int)e.NewValue + "$";
             }
         }
         private void KOCheckBox_Changed(object sender, EventArgs e)
@@ -783,14 +954,14 @@ namespace BlindsUp
             PrizeNotifyLabel.Text = "";
 
             if(KOCheckBox.IsChecked) {
-                KOPoolLayout.IsVisible = true;
-                KOPoolLabel.Text = "KO Pool: " + gameInfo.bountyPoolPct + "%";
-                KOPoolStepper.Value = gameInfo.bountyPoolPct;
+                KOBLayout.IsVisible = true;
+                KOBLabel.Text = "KO: " + Convert.ToInt32(gameInfo.bounty) + "$";
+                KOBStepper.Value = gameInfo.bounty;
             }
             else {
-                KOPoolLayout.IsVisible = false;
-                KOPoolLabel.Text = "";
-                KOPoolStepper.Value = gameInfo.bountyPoolPct;
+                KOBLayout.IsVisible = false;
+                KOBLabel.Text = "";
+                KOBStepper.Value = gameInfo.bounty;
             }
         }
         private void EB_NewLevel(int newLevel)
@@ -821,15 +992,8 @@ namespace BlindsUp
             EBLevelStepper.Value = ilevel;
 
             EBDurationValue.Text = mins + " minutes";
-            EBDurationStepper.Minimum = 0;
-            EBDurationStepper.Maximum = 120;
-            EBDurationStepper.Increment = 5;
             EBDurationStepper.Value = mins;
-
             EBBreakValue.Text = breakMins + " minutes";
-            EBBreakStepper.Minimum = 0;
-            EBBreakStepper.Maximum = 120;
-            EBBreakStepper.Increment = 5;
             EBBreakStepper.Value = breakMins;
 
             EBAnteValue.Text = "" + ante;
@@ -891,8 +1055,8 @@ namespace BlindsUp
         {
             ConfigPanel.IsVisible = true;
             TitlePanel.IsVisible = false;
-            gameInfo.title1 = Title1Entry.Text;
-            gameInfo.title2 = Title2Entry.Text;
+            Title1.Text = gameInfo.title1 = Title1Entry.Text;
+            Title2.Text = gameInfo.title2 = Title2Entry.Text;
         }
         private void Quit_Titles(object sender, EventArgs e)
         {

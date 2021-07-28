@@ -5,31 +5,37 @@
 
     <StackLayout  Orientation="Vertical" Padding="0,0,0,0" Spacing="0">
 
-        <StackLayout x:Name="ConfigPanel" Orientation="Horizontal" Padding="0,0,0,0" Spacing="0"
+        <StackLayout x:Name="ConfigPanel" Orientation="Horizontal" Padding="10,10,0,0" Spacing="0"
                      VerticalOptions="StartAndExpand" IsVisible="False">
             <Button Text="Titles" Clicked="Configure_Titles"></Button>
             <Button Text="Blinds" Clicked="Configure_Blinds"></Button>
             <Button Text="Prizes" Clicked="Configure_Prizes"></Button>
-            <Button Text="Exit" Margin="10" Clicked="Configure_Exit"></Button>
+            <Button Text="Quit" Margin="10" Clicked="Configure_Exit"></Button>
         </StackLayout>
 
         <!-- panel used to configure misc titles -->
-        <StackLayout x:Name="TitlePanel" Orientation="Vertical" Padding="0,0,0,0" Spacing="0"
-                     VerticalOptions="StartAndExpand" IsVisible="False">
-            <Label Text="Titles"  FontAttributes="Bold" FontSize="17" Padding="15,10,0,0"></Label>
-            <Entry x:Name="Title1Entry" Placeholder="Enter title1"></Entry>
-            <Entry x:Name="Title2Entry" Placeholder="Enter title2"></Entry>
-            <StackLayout x:Name="TitleActionsPanel" Orientation="Horizontal" Padding="0,0,0,0" Spacing="0">
+        <StackLayout x:Name="TitlePanel" Orientation="Vertical" Padding="0,5,0,5" Spacing="0"
+                     VerticalOptions="Start" IsVisible="False">
+            <Label Text="Titles"  FontAttributes="Bold" FontSize="Medium" Padding="10,10,0,10"></Label>
+            <StackLayout BackgroundColor="Black" HeightRequest="1"></StackLayout>
+            <StackLayout Padding="10,10,0,0"></StackLayout>
+            <StackLayout Padding="10,0,0,0">
+            <Entry x:Name="Title1Entry" WidthRequest="200" Placeholder="Enter title1"
+                   HorizontalOptions="Start" VerticalTextAlignment="Center"></Entry>
+            <Entry x:Name="Title2Entry" WidthRequest="200" Placeholder="Enter title2"
+                   HorizontalOptions="Start" VerticalTextAlignment="Center"></Entry>
+            <StackLayout x:Name="TitleActionsPanel" Orientation="Horizontal" Padding="0,10,0,0" Spacing="0">
                 <Button Text="Save" Clicked="Save_Titles"></Button>
                 <Button Text="Quit" Clicked="Quit_Titles"></Button>
             </StackLayout>
+            </StackLayout>
         </StackLayout>
 
-        <StackLayout x:Name="PrizesPanel" Orientation="Vertical" Padding="0,0,0,0" Spacing="0"
+        <StackLayout x:Name="PrizesPanel" Orientation="Vertical" Padding="5,5,0,0" Spacing="0"
                      VerticalOptions="StartAndExpand" IsVisible="False">
-            <Label Text="Prizes"  FontAttributes="Bold" FontSize="Medium" Padding="5,5,0,5"></Label>
-            <StackLayout HeightRequest="1" BackgroundColor="Black"></StackLayout>
-            <StackLayout Orientation="Horizontal" Padding="10,0,0,0" >
+            <Label Text="Prizes"  FontAttributes="Bold" FontSize="Medium" Padding="10,10,0,10"></Label>
+            <StackLayout HeightRequest="1" BackgroundColor="Black" ></StackLayout>
+            <StackLayout Orientation="Horizontal" Padding="10,10,0,0" >
                 <Label x:Name="TopPrizesLabel" Text="Top 3" FontSize="Medium" Padding="0,0,0,0" VerticalTextAlignment="Center"></Label>
                 <Stepper x:Name="TopPrizesStepper" Value="3" HeightRequest="40" Minimum="1" Maximum="5"
                          ValueChanged="NumPrizes_Changed"></Stepper>
@@ -66,19 +72,19 @@
                 <Stepper x:Name="Stepper_p5" Maximum="100" HeightRequest="40" 
                          ValueChanged="Prize_Changed" Increment="1" Minimum="0"></Stepper>
             </StackLayout>
-            <StackLayout x:Name="KOPoolLayout" Orientation="Horizontal" Padding="10,0,0,0">
-                <Label x:Name="KOPoolLabel" Text="KO Pool: 5%" FontSize="Small" 
+            <StackLayout x:Name="KOBLayout" Orientation="Horizontal" Padding="10,0,0,0">
+                <Label x:Name="KOBLabel" Text="KO: 5$" FontSize="Medium" 
                        WidthRequest="80" VerticalTextAlignment="Center"></Label>
-                <Stepper x:Name="KOPoolStepper" Maximum="100" HeightRequest="40" 
-                         ValueChanged="Prize_Changed" Increment="1" Minimum="0"></Stepper>
+                <Stepper x:Name="KOBStepper" Minimum="0" Maximum="50" HeightRequest="40" 
+                         ValueChanged="Prize_Changed" Increment="1"></Stepper>
             </StackLayout>
             
             <StackLayout x:Name="PrizesActionsPanel" Orientation="Horizontal" Padding="10,20,0,0" Spacing="0">
                 <Button Text="Save" Clicked="Save_Prizes"></Button>
                 <Button Text="Quit" Clicked="Quit_Prizes"></Button>
-                <Label x:Name="PrizeNotifyLabel" Text="" FontSize="Small"
-                       VerticalTextAlignment="Center" Padding="10,0,0,0"></Label>
             </StackLayout>
+            <Label x:Name="PrizeNotifyLabel" Text="" FontSize="Small"
+                       VerticalTextAlignment="Center" Padding="10,10,0,0"></Label>
         </StackLayout>
 
         <!-- panel used for "people actions" -->
@@ -100,11 +106,13 @@
                          IsVisible="false" Spacing="0">
                 <StackLayout Orientation="Horizontal">
                     <Label Text="Player" VerticalTextAlignment="Center" FontSize="Medium"></Label>
-                    <Entry x:Name="PlName" WidthRequest="200" Placeholder="name here" FontSize="Medium"></Entry>
+                    <Entry x:Name="PlName" WidthRequest="200" Placeholder="name here" 
+                           HorizontalTextAlignment="Center" FontSize="Medium"></Entry>
                 </StackLayout>
                 <StackLayout Orientation="Horizontal">
                     <Label Text="Buy-in" VerticalTextAlignment="Center" FontSize="Medium"></Label>
-                    <Entry x:Name="PlBuyIn" Placeholder="amount here" FontSize="Medium"></Entry>
+                    <Entry x:Name="PlBuyIn" Placeholder="amount here" FontSize="Medium"
+                           HorizontalTextAlignment="Center"></Entry>
                 </StackLayout>
             </StackLayout>
 
@@ -115,8 +123,10 @@
                     <Picker  x:Name="PLRebuyer" Title="Select Player" WidthRequest="200" HorizontalOptions="Start"
                         VerticalTextAlignment="Center" HorizontalTextAlignment="Center" FontSize="Medium"></Picker>
                     <StackLayout Orientation="Horizontal">
-                        <Label Text="Rebuy" VerticalTextAlignment="Center" FontSize="Medium"></Label>
-                        <Entry x:Name="PlRebuyAmount" Placeholder="amount here" FontSize="Medium"></Entry>
+                        <Label Text="Rebuy" VerticalTextAlignment="Center" 
+                               FontSize="Medium"></Label>
+                        <Entry x:Name="PlRebuyAmount" Placeholder="amount here" 
+                               FontSize="Medium" HorizontalTextAlignment="Center"></Entry>
                     </StackLayout>
                 </StackLayout>
             </StackLayout>
@@ -130,6 +140,17 @@
                         VerticalTextAlignment="Center" HorizontalTextAlignment="Center" FontSize="Medium"></Picker>
             </StackLayout>
 
+            <!-- panel used for icm chop -->
+            <StackLayout x:Name="PlChopPanel" Orientation="Vertical" Padding="20,5,0,0" 
+                         IsVisible="false" Spacing="0">
+                <Label x:Name="PLChopNotice" Text="Available Pool= $"
+                     HorizontalOptions="Start" Padding="0,0,0,5" VerticalTextAlignment="Center" 
+                       HorizontalTextAlignment="Center" FontSize="Medium"></Label>
+                <Label x:Name="PLChopInstructionLabel" Text="Enter stacks below"
+                     HorizontalOptions="Start" Padding="0,0,0,10" VerticalTextAlignment="Center" 
+                       HorizontalTextAlignment="Center" FontSize="Medium"></Label>
+            </StackLayout>
+            
             <!-- panel used for tablePos -->
             <StackLayout x:Name="PlAssignTablePanel" Orientation="Vertical" Padding="20,5,0,0" 
                          IsVisible="false" Spacing="0">
@@ -148,10 +169,12 @@
             <StackLayout Orientation="Horizontal" Padding="20,10,0,0" Spacing="0">
                 <Button x:Name="PlAssignButton" Text="Assign" IsVisible="False"
                         Clicked="PL_AssignSeats"></Button>
+                <Button x:Name="PlCalculateChopButton" Text="Calculate" IsVisible="False"
+                        Clicked="PL_CalculateChop"></Button>
                 <Button x:Name="PlSaveButton" Text="Save" IsVisible="false" Clicked="PL_Save"></Button>
                 <Button x:Name="PlQuitButton" Text="Quit" Clicked="PL_Quit"></Button>
             </StackLayout>
-            <Label x:Name="PLNotification" FontSize="Small" Text="message here" 
+            <Label x:Name="PLNotification" FontSize="Small" Text=" " 
                        VerticalTextAlignment="Center" Padding="20,10,0,0"></Label>
         </StackLayout>
         
@@ -163,41 +186,39 @@
                    HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
                 <Stepper x:Name="EBLevelStepper" ValueChanged="EB_LevelChanged"></Stepper>
             </StackLayout>
-            <StackLayout HeightRequest="2" BackgroundColor="Black" >
+            <StackLayout HeightRequest="1" BackgroundColor="Black" >
             </StackLayout>
 
-            <StackLayout Orientation="Horizontal" Padding="0,10,0,0">
+            <StackLayout Orientation="Horizontal" Padding="10,10,0,0">
                 <Label Text="Duration" FontSize="Medium" WidthRequest="70"
                    HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
-                <Stepper x:Name="EBDurationStepper" ValueChanged="EB_DurationChanged"></Stepper>
-                <Label x:Name="EBDurationValue" Text="30 minutes" FontSize="Medium" VerticalTextAlignment="Center"></Label>
+                <Stepper x:Name="EBDurationStepper" ValueChanged="EB_DurationChanged"
+                         Minimum="0" Maximum="120" Increment="5"></Stepper>
+                <Label x:Name="EBDurationValue" Text="30 minutes" FontSize="Medium" 
+                        VerticalTextAlignment="Center"></Label>
             </StackLayout>
-            <StackLayout Orientation="Horizontal">
+            <StackLayout Orientation="Horizontal" Padding="10,0,0,0">
                 <Label Text="Blinds" FontSize="Medium" WidthRequest="70" 
                    HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
                 <Stepper x:Name="EBBlindStepper" ValueChanged="EB_BlindsChanged"></Stepper>
                 <Label x:Name="EBBlindValue" Text="1000/2000" FontSize="Medium" VerticalTextAlignment="Center"></Label>
             </StackLayout>
-            <StackLayout Orientation="Horizontal">
+            <StackLayout Orientation="Horizontal" Padding="10,0,0,0">
                 <Label Text="Ante" FontSize="Medium" WidthRequest="70" 
                    HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
                 <Stepper x:Name="EBAnteStepper" ValueChanged="EB_AnteChanged"></Stepper>
                 <Label x:Name="EBAnteValue" Text="0" FontSize="Medium" VerticalTextAlignment="Center"></Label>
             </StackLayout>
-            <StackLayout Orientation="Horizontal" Padding="0,0,0,5">
+            <StackLayout Orientation="Horizontal" Padding="10,0,0,0">
                 <Label Text="+Break" FontSize="Medium" WidthRequest="70" 
                    HorizontalTextAlignment="Center" VerticalTextAlignment="Center"></Label>
-                <Stepper x:Name="EBBreakStepper" ValueChanged="EB_BreakChanged"></Stepper>
+                <Stepper x:Name="EBBreakStepper" Minimum="0" Maximum="30" Increment="1"  ValueChanged="EB_BreakChanged"></Stepper>
                 <Label x:Name="EBBreakValue" Text="0 minutes" FontSize="Medium" VerticalTextAlignment="Center"></Label>
             </StackLayout>
 
-            
-            <StackLayout HeightRequest="2" BackgroundColor="Gray" >
-            </StackLayout>
             <StackLayout Orientation="Horizontal" Padding="20,5,0,0" Spacing="0">
                 <Button x:Name="EBSaveButton" Text="Save" Clicked="EB_Save"></Button>
                 <Button x:Name="EBQuitButton" Text="Quit" Clicked="EB_Quit"></Button>
-               
             </StackLayout>
            
         </StackLayout>
@@ -205,8 +226,10 @@
         <FlexLayout x:Name="MainPanel" Direction="Column"  AlignItems="Center" JustifyContent="SpaceEvenly" 
                 VerticalOptions="FillAndExpand" Padding="0,0,0,0" BackgroundColor="LightSalmon">
 
-            <Label x:Name="Clock" Text="Clock" FontSize="Header" Padding="0,0,0,0" 
+            <Label x:Name="Title1" Text="$50 Buy-In" FontSize="40" Padding="0,0,0,0" 
                     IsVisible="True" FontAttributes="Bold" HorizontalOptions="CenterAndExpand"/>
+            <Label x:Name="Clock" Text="Clock" FontSize="Header" Padding="0,0,0,0" 
+                    IsVisible="False" FontAttributes="Bold" HorizontalOptions="CenterAndExpand"/>
 
             <StackLayout Orientation="Horizontal" Padding="0,0,0,0" HorizontalOptions="CenterAndExpand">
                 <ImageButton x:Name="IBplay" CornerRadius="25" Source="playtest.png"  
@@ -214,7 +237,7 @@
                 <ImageButton x:Name="IBpause" CornerRadius="23" Source="pausetest.png"   
                          IsVisible="False"  Clicked="Pause_Clicked"  />
 
-                <Label x:Name="Level" Text="Level" FontSize="25" Padding="0,0,0,0" 
+                <Label x:Name="Level" Text="Starting Soon" FontSize="Title" Padding="0,0,0,0" 
                    VerticalOptions="Center"/>
                 <ImageButton x:Name="IBreverse" CornerRadius="25" Source="reverse.png"
                     HorizontalOptions="Center" Padding="0,0,0,0" IsVisible="True"
@@ -224,19 +247,24 @@
                     Clicked="Forward_Clicked"/>
 
             </StackLayout>
-
+            <Label x:Name="Title2" Text="NL Hold'em KO" FontSize="40" Padding="0,0,0,0" 
+                    IsVisible="True" FontAttributes="Bold" HorizontalOptions="CenterAndExpand"/>
             <Label x:Name="Blinds" Text="Blinds" FontSize="Header"  FontAttributes="Bold" 
-               Padding="0,0,0,0" HorizontalOptions="CenterAndExpand" />
+               Padding="0,0,0,0" IsVisible="False" HorizontalOptions="CenterAndExpand" />
 
         </FlexLayout>
 
-        <StackLayout x:Name="BottomIconPanel" Orientation="Horizontal" VerticalOptions="End" BackgroundColor="LightSalmon" Padding="0,0,0,0">
+        <StackLayout x:Name="BottomIconPanel" Orientation="Horizontal" VerticalOptions="End" 
+                     HorizontalOptions="Fill" BackgroundColor="LightSalmon" Padding="0,0,0,0">
             <ImageButton x:Name="IBconfigure" CornerRadius="16" Source="configure32.png"
                     BackgroundColor="LightSalmon" HorizontalOptions="Start" Clicked="Configure_Click"
-                    VerticalOptions="End" Padding="0,0,0,0" />
+                    VerticalOptions="End" Padding="5,0,0,5" />
             <ImageButton x:Name="IBpeople" CornerRadius="16" Source="person32.png"
                     BackgroundColor="LightSalmon" HorizontalOptions="Start" Clicked="People_Click"
-                    VerticalOptions="End" Padding="0,0,0,0" />
+                    VerticalOptions="End" Padding="0,0,2,5" />
+            <Label x:Name="PrizePool" Padding="20,0,0,0" Text="               " 
+                   FontSize="Small" WidthRequest="150" VerticalTextAlignment="Center"
+                   HorizontalOptions="Center"></Label>
      </StackLayout>
         
     </StackLayout>
