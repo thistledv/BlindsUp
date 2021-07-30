@@ -1,0 +1,36 @@
+Typical tourney usage scenario
+
+1 start app->hit settings button->select titles
+  personalize title1 and title2, hit save, then quit to main display
+  notice that new titles are showing
+2 settings->prizes
+  select check box for ko bounties, increment counter to set a
+  $7 bounty, save (notice notification prize structure updated),
+  ->quit
+3 ->select blinds-> use stepper to advance across all the blind
+  levels, notice level amount and times, return to level 1,
+  change to 5 mins, and add a 2 minute break ->save ->quit ->quit
+  to main display
+4 on main display use forward and reverse button to scan levels
+   go back to "starting soon" level 0
+5 go to people button, select action "player buyin", add a player
+   name and amount, hit save, notice the tiny label entrants has
+   changed to reflect the player count.  Buy in an additional
+   4 players, save each as you go.
+6 select action to assign positions, hit assign button.  Notice
+   that the label changed to 5 of 5 seated
+7 do another player buy-in and save
+8 go back to assign positions and hit assign+.  Notice that the
+  new player has been inserted somewhere but all the other playerss
+  retain the same position relative to each other
+9 quit out to main display, the prize pool at the bottom of
+  the screen
+10 start play.. notice clock ticking
+11 without pausing select people icon, select action for record KO
+enter who ko'ed who, record another KO as well.  down to 3 people
+12 go to icm chop screen and notice that 3 players are left, but
+just exit without chopping
+13 go to rebuy one of the players that was KO'ed.  Go back to icm
+chop screen and notice that player has returned to the list, also
+notice the pool for the chop reflect total entries minus bounty
+14 now enter the player names and stacks and hit calculate

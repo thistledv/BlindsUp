@@ -119,11 +119,19 @@ namespace BlindsUp
                 Clock.IsVisible = Blinds.IsVisible = true;
                 Title1.IsVisible = Title2.IsVisible = false;
             }
-            
+
             Clock.Text = gameInfo.ClockString();
             Blinds.Text = gameInfo.BlindString();
             Level.Text = gameInfo.LevelString();
-            MainPanel.IsVisible = true;
+            if (ConfigPanel.IsVisible || PeoplePanel.IsVisible ||
+                PrizesPanel.IsVisible || TitlePanel.IsVisible || EBPanel.IsVisible)
+            {
+
+            }
+            else
+            {
+                MainPanel.IsVisible = true;
+            }
         }
 
         void OnTimedEvent(Object source, ElapsedEventArgs e)
@@ -180,7 +188,7 @@ namespace BlindsUp
 
         private void Play_Clicked(object sender, EventArgs e)
         {
-            BottomIconPanel.IsVisible = false;
+            //BottomIconPanel.IsVisible = false;
 
             // if unpausing: change state, enable timer, and redisplay
             if (gameInfo.isPaused)
@@ -222,7 +230,7 @@ namespace BlindsUp
             IBreverse.IsVisible = true;
             IBforward.IsVisible = true;
             gameInfo.isPaused = true;
-            BottomIconPanel.IsVisible = true;
+            //BottomIconPanel.IsVisible = true;
             displayMainPanel();
         }
 
@@ -334,7 +342,6 @@ namespace BlindsUp
         private void PL_Quit(object sender, EventArgs e)
         {
             PeoplePanel.IsVisible = false;
-            MainPanel.IsVisible = true;
             BottomIconPanel.IsVisible = true;
             PlName.Text = "";
             PlBuyIn.Text = "";
@@ -344,6 +351,7 @@ namespace BlindsUp
             PlAssignTablePanel.IsVisible = false;
             PLNotification.Text = "";
             PlChopPanel.IsVisible = false;
+            MainPanel.IsVisible = true;
         }
 
         private void updateActiveLabel()
@@ -1046,8 +1054,9 @@ namespace BlindsUp
         private void Configure_Exit(object sender, EventArgs e)
         {
             ConfigPanel.IsVisible = false;
-            displayMainPanel();
             BottomIconPanel.IsVisible = true;
+            displayMainPanel();
+            
            
         }
     
