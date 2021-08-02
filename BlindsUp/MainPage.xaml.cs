@@ -375,34 +375,40 @@ namespace BlindsUp
             {
                 // validate buy-in and name
                 string nam = PlName.Text;
-
-                double bi = 0.0;
-                bool isValidNumeric = true;
-                try
+                if (!personInfo.nameAvailable(nam, peopleInfo))
                 {
-                    bi = Convert.ToDouble(PlBuyIn.Text);
-                }
-                catch (Exception e1)
-                {
-                    e1.ToString();
-                    isValidNumeric = false;
-                }
-                if (!isValidNumeric)
-                {
-                    PLNotification.Text = "Invalid Buy-In Amount";
-                }
-                else if (PlName.Text.Length == 0)
-                {
-                    PLNotification.Text = "Must enter player name";
+                    PLNotification.Text = "Name already in use";
                 }
                 else
                 {
-                    peopleInfo.Add(new personInfo(PlName.Text, bi));
-                    PLNotification.Text = "Buy-In successful for " + PlName.Text;
-                    updateActiveLabel();
-                    updatePrizePool();
-                    PlName.Text = "";
-                    PlBuyIn.Text = "";
+                    double bi = 0.0;
+                    bool isValidNumeric = true;
+                    try
+                    {
+                        bi = Convert.ToDouble(PlBuyIn.Text);
+                    }
+                    catch (Exception e1)
+                    {
+                        e1.ToString();
+                        isValidNumeric = false;
+                    }
+                    if (!isValidNumeric)
+                    {
+                        PLNotification.Text = "Invalid Buy-In Amount";
+                    }
+                    else if (PlName.Text.Length == 0)
+                    {
+                        PLNotification.Text = "Must enter player name";
+                    }
+                    else
+                    {
+                        peopleInfo.Add(new personInfo(PlName.Text, bi));
+                        PLNotification.Text = "Buy-In successful for " + PlName.Text;
+                        updateActiveLabel();
+                        updatePrizePool();
+                        PlName.Text = "";
+                        PlBuyIn.Text = "";
+                    }
                 }
             }
 
@@ -450,7 +456,8 @@ namespace BlindsUp
                     if (rebi > 0.0)
                     {
                         peopleInfo[playerIndex].isActive = true;
-                        peopleInfo[playerIndex].chipBuys += 1;
+                        peopleInfo[playerIndex].chipBuyAmounts.Add(rebi);
+                        peopleInfo[playerIndex].chipBuyLevels.Add(gameInfo.currentBlindLevel);
                         PLNotification.Text = "Rebuy successful for " + peopleInfo[playerIndex].name;
                     }
                     updateActiveLabel();
@@ -463,8 +470,9 @@ namespace BlindsUp
             }
             else if (PLPicker.SelectedIndex == (int)PlActions.PL_KNOCKOUT)
             {
-                int koVictim = PLKnockee.SelectedIndex;
-                int koPerp = PLKnocker.SelectedIndex;
+                int koVictim = personInfo.nameToIndex((string)PLKnockee.SelectedItem, peopleInfo);
+                int koPerp = personInfo.nameToIndex((string)PLKnocker.SelectedItem, peopleInfo);
+                   
                 if ((koVictim < 0) || (koPerp < 0))
                 {
                     PLNotification.Text = "Please select BOTH victim and perp";

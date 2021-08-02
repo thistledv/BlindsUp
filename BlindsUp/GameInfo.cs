@@ -16,7 +16,7 @@ namespace BlindsUp
     class personInfo
     {
         public string name;
-        public int chipBuys;
+        
         public int bustOuts;
         public int bustOutOrder; // used to determine finish
         public int knockOuts;
@@ -24,22 +24,52 @@ namespace BlindsUp
         public double koPrize;
         public double itmPrize;
         public List<int>koVictims;
+        public List<double> chipBuyAmounts;
+        public List<int> chipBuyLevels;
         public bool isActive;
         public int tablePos;
 
         public personInfo (string _name, double _buyIn)
         {
             name = _name;
-            chipBuys = 1;
+            chipBuyAmounts = new List<double>();
+            chipBuyLevels = new List<int>();
+            chipBuyAmounts.Add(_buyIn);
+            chipBuyLevels.Add(0);
+
             isActive = true;
             koVictims = new List<int>();
-            totalFees = _buyIn;
             koPrize = 0.0;
             itmPrize = 0.0;
             bustOuts = 0;
             knockOuts = 0;
             tablePos = -1;
             bustOutOrder = 0;
+        }
+        static public int nameToIndex (string name, List<personInfo> people)
+        {
+            for(int i=0;i<people.Count;i++)
+            {
+                if (people[i].name.Equals(name))
+                    return i;
+            }
+            return -1;
+        }
+
+        static public bool nameAvailable(string name, List<personInfo> people)
+        {
+            for (int i = 0; i < people.Count; i++)
+            {
+                if (people[i].name.Equals(name))
+                    return false;
+            }
+            return true;
+        }
+        public double getTotalFees()
+        {
+            double dsum = 0.0;
+            foreach (double dval in chipBuyAmounts) dsum += dval;
+            return dsum;
         }
     }
     
